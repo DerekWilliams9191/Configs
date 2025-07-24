@@ -91,6 +91,7 @@ alias gs='git status'
 alias ga='git add'
 alias gc='git commit'
 alias gl='git log'
+alias lg='lazygit'
 
 source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
 
@@ -118,3 +119,4 @@ alias ls="eza --icons=always"
 # ---- Zoxide (better cd) ----
 eval "$(zoxide init zsh)"
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+

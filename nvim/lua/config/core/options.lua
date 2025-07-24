@@ -19,6 +19,10 @@ opt.wrap = false -- disable line wrapping
 opt.ignorecase = true -- ignore case when searching
 opt.smartcase = true -- if you include mixed case in your search, assumes you want case-sensitive
 
+-- scroll settings
+opt.scrolloff = 10 -- keep 8 lines above/below cursor when scrolling
+opt.sidescrolloff = 12 -- keep 8 columns left/right of cursor when scrolling
+
 -- cursor line
 opt.cursorline = true -- highlight the current cursor line
 
@@ -40,8 +44,16 @@ opt.clipboard:append("unnamedplus") -- use system clipboard as default register
 opt.splitright = true -- split vertical window to the right
 opt.splitbelow = true -- split horizontal window to the bottom
 
--- turn off swapfile
-opt.swapfile = false
+-- persistence settings
+opt.swapfile = true -- enable swap files
+opt.backup = true -- enable backup files
+opt.undofile = true -- enable persistent undo
+opt.undolevels = 10000 -- maximum number of changes that can be undone
+
+-- directories for temporary files
+opt.directory = vim.fn.stdpath("cache") .. "/swap"
+opt.backupdir = vim.fn.stdpath("cache") .. "/backup"
+opt.undodir = vim.fn.stdpath("cache") .. "/undo"
 
 -- disable startup screen
 opt.shortmess:append("I")

@@ -10,7 +10,11 @@ local keymap = vim.keymap -- for conciseness
 keymap.set("i", "jk", "<ESC>", { desc = "Exit insert mode with jk" })
 
 -- clear search highlights
-keymap.set("n", "<leader>nh", ":nohl<CR>", { desc = "Clear search highlights" })
+keymap.set("n", "<leader>hc", ":nohl<CR>", { desc = "Clear search highlights" })
+
+-- scroll without moving cursor (like Ctrl-E and Ctrl-Y)
+keymap.set("n", "<S-j>", "2<C-e>", { desc = "Scroll down two lines without moving cursor" })
+keymap.set("n", "<S-k>", "2<C-y>", { desc = "Scroll up two lines without moving cursor" })
 
 -- delete single character without copying into register
 -- keymap.set("n", "x", '"_x')
@@ -41,4 +45,3 @@ keymap.set("n", "<leader>t6", "6gt", { desc = "Go to tab 6" })
 keymap.set("n", "<leader>t7", "7gt", { desc = "Go to tab 7" })
 keymap.set("n", "<leader>t8", "8gt", { desc = "Go to tab 8" })
 keymap.set("n", "<leader>t9", "9gt", { desc = "Go to tab 9" })
-
