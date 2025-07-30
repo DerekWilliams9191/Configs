@@ -57,3 +57,9 @@ opt.undodir = vim.fn.stdpath("cache") .. "/undo"
 
 -- disable startup screen
 opt.shortmess:append("I")
+
+-- disable telemetry and data collection
+vim.g.loaded_python3_provider = 0  -- disable python3 provider
+vim.g.loaded_ruby_provider = 0     -- disable ruby provider
+vim.g.loaded_node_provider = 0     -- disable node provider
+vim.g.loaded_perl_provider = 0     -- disable perl provider
