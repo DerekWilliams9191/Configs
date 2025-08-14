@@ -11,7 +11,7 @@ fi
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.config/.oh-my-zsh"
 
-ZSH_THEME="robbyrussell"
+ZSH_THEME=""
 
 
 CASE_SENSITIVE="true"
