@@ -101,7 +101,6 @@ done
 # Casks
 BREW_CASKS=(
     "iterm2"
-    "font-meslo-lg-nerd-font"
 )
 
 for cask in "${BREW_CASKS[@]}"; do
@@ -178,6 +177,25 @@ if [ ! -f "$HOME/.p10k.zsh" ]; then
     fi
 else
     print_success "Powerlevel10k configuration already exists"
+fi
+
+# Install MesloLGS Nerd Font (same as Linux script for consistency)
+print_step "Installing MesloLGS Nerd Font..."
+FONT_DIR="$HOME/Library/Fonts"
+mkdir -p "$FONT_DIR"
+
+if [ ! -f "$FONT_DIR/MesloLGS NF Regular.ttf" ]; then
+    print_step "Downloading MesloLGS Nerd Font..."
+    cd /tmp
+    wget -q "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" || curl -sL -o "MesloLGS NF Regular.ttf" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf"
+    wget -q "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf" || curl -sL -o "MesloLGS NF Bold.ttf" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf"
+    wget -q "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf" || curl -sL -o "MesloLGS NF Italic.ttf" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf"
+    wget -q "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf" || curl -sL -o "MesloLGS NF Bold Italic.ttf" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf"
+    
+    mv "MesloLGS NF"*.ttf "$FONT_DIR/"
+    print_success "MesloLGS Nerd Font installed"
+else
+    print_success "MesloLGS Nerd Font already installed"
 fi
 
 # Make zsh the default shell
