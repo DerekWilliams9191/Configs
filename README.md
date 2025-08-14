@@ -1,34 +1,74 @@
-# Configs
+# My Dotfiles Repository
 
-This is the place I store my configs so I can easily add them to any system.
+This repository contains my personal dotfiles and configurations for macOS.
 
+## Quick Start
 
-## Getting started
+1. Clone the repository:
 
-### Adding symlinks
-```bash
-ln -s ~/.config/.zshrc ~/.zshrc
-ln -s ~/.config/.gitconfig ~/.gitconfig
-ln -s ~/.config/.wezterm.lua ~/.wezterm.lua
+   ```bash
+   git clone <repository-url> ~/.config
+   ```
 
-```
+2. Run the installation script:
 
+   ```bash
+   cd ~/.config
+   ./install.sh
+   ```
 
-### Remove the "Last login:..." message
-touch ~/.hushlogin
+3. Restart your terminal or source the config:
+   ```bash
+   source ~/.zshrc
+   ```
 
-> Front and theme pulled from here: https://www.josean.com/posts/how-to-setup-wezterm-terminal
+## What's Included
 
-### Font
-```bash
-brew install font-meslo-lg-nerd-font
-```
+- **Zsh configuration** with Oh My Zsh, Powerlevel10k theme
+- **Tmux configuration** with vim-style keybindings and plugins
+- **Git configuration** with global gitignore
+- **WezTerm configuration**
+- **iTerm2 preferences** (if available)
+- **Homebrew packages** via Brewfile
 
-### Theme
-This needs a nerd font to work, see the above font to run it
+## Manual Steps After Installation
 
-```bash
-brew install powerlevel10k
-echo "source $(brew --prefix)/share/powerlevel10k/powerlevel10k.zsh-theme" >> ~/.zshrc
-source ~/.zshrc
-```
+1. **Tmux plugins**: Open tmux and press `Ctrl+Space + I` to install plugins
+2. **Powerlevel10k**: Run `p10k configure` if you need to reconfigure the prompt
+3. **iTerm2**: If preferences weren't imported, manually configure and export to
+   `iterm2/com.googlecode.iterm2.plist`
+
+## Key Features
+
+### Tmux
+
+- Prefix key: `Ctrl+Space` (not Ctrl+B)
+- Vim-style copy mode (`y` to copy, not Cmd+C)
+- Split windows: `|` (horizontal), `-` (vertical)
+- Resize panes: `h/j/k/l`
+- Reload config: `Ctrl+Space + r`
+
+### Zsh
+
+- Enhanced history with search
+- Auto-suggestions and syntax highlighting
+- Better ls with `eza`
+- Better cd with `zoxide`
+- Git aliases: `gs`, `ga`, `gc`, `gl`, `lg`
+
+### Git
+
+- Global gitignore for common files
+- Configured editor and basic settings
+
+## Troubleshooting
+
+- If tmux plugins don't work, ensure TPM is installed and press `Ctrl+Space + I`
+- If zsh isn't the default shell, run: `chsh -s $(which zsh)`
+- For iTerm2 theme issues, check that Meslo LG Nerd Font is selected in
+  preferences
+- If vim bindings don't work in tmux copy mode, ensure your .tmux.conf is
+  properly linked
+
+> Font and theme inspiration from:
+> https://www.josean.com/posts/how-to-setup-wezterm-terminal
