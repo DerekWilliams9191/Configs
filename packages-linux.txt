@@ -1,0 +1,36 @@
+# Essential packages for Linux dotfiles setup
+# This file serves as documentation for what gets installed
+
+## Core packages (available in most package managers)
+zsh                    # Z shell
+git                    # Version control
+curl                   # HTTP client
+wget                   # File downloader
+tmux                   # Terminal multiplexer
+vim                    # Text editor
+neovim                 # Modern vim
+build-essential        # Compilation tools (Debian/Ubuntu)
+base-devel            # Compilation tools (Arch)
+gcc gcc-c++ make      # Compilation tools (Fedora/RHEL)
+
+## Fonts
+fonts-powerline       # Powerline fonts (Debian/Ubuntu)
+powerline-fonts       # Powerline fonts (Fedora/RHEL)
+fonts-noto-color-emoji # Color emoji support (Debian/Ubuntu)
+google-noto-emoji-color-fonts # Color emoji (Fedora/RHEL)
+noto-fonts-emoji      # Color emoji (Arch)
+
+## Modern CLI tools (installed via script)
+eza                   # Better ls replacement
+zoxide                # Better cd replacement  
+lazygit               # Git TUI
+
+## Zsh plugins (installed to .oh-my-zsh/custom)
+zsh-autosuggestions   # Command suggestions
+zsh-syntax-highlighting # Syntax highlighting
+powerlevel10k         # Theme
+
+## Manual installations
+# MesloLGS Nerd Font - Downloaded from GitHub
+# TPM (Tmux Plugin Manager) - Cloned from GitHub
+# Oh My Zsh - Cloned from GitHub
