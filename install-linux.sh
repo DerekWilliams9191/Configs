@@ -303,7 +303,8 @@ fi
 # Make zsh the default shell
 if [ "$SHELL" != "$(which zsh)" ]; then
     print_step "Setting zsh as default shell..."
-    chsh -s "$(which zsh)"
+    echo "You may be prompted for your password to change the default shell."
+    chsh -s "$(which zsh)" || print_warning "Failed to set zsh as default shell. Run manually: chsh -s \$(which zsh)"
     print_success "Default shell set to zsh"
 else
     print_success "zsh is already the default shell"
