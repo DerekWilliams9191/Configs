@@ -10,7 +10,11 @@ return {
 	-- [[ Configure require("snacks") ]]
 	-- See `:help snacks-init`
 	opts = {
-		lazygit = {},
+		lazygit = {
+			win = {
+				style = "lazygit",
+			},
+		},
 		dim = {},
 		explorer = {},
 		gitbrowse = {},
