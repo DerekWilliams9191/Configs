@@ -128,17 +128,23 @@ print_step "Creating configuration symlinks..."
 
 create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
 create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
-create_symlink "$SCRIPT_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
 
-# Copy tmux config if it exists
-if [ -f "$SCRIPT_DIR/.tmux.conf" ]; then
-    backup_file "$HOME/.tmux.conf"
-    cp "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
-    print_success "Copied tmux configuration"
-elif [ -f "$HOME/.tmux.conf" ]; then
-    print_success "tmux configuration already exists"
-else
-    print_warning "No tmux configuration found in dotfiles or home directory"
+# Only link .gitignore_global if it exists
+if [ -f "$SCRIPT_DIR/.gitignore_global" ]; then
+    create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global"
+fi
+
+create_symlink "$SCRIPT_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
+create_symlink "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
+
+# Link nvim config if it exists
+if [ -d "$SCRIPT_DIR/nvim" ]; then
+    create_symlink "$SCRIPT_DIR/nvim" "$HOME/.config/nvim"
+fi
+
+# Link Brewfile if it exists
+if [ -f "$SCRIPT_DIR/Brewfile" ]; then
+    create_symlink "$SCRIPT_DIR/Brewfile" "$HOME/Brewfile"
 fi
 
 # Install TPM (Tmux Plugin Manager)

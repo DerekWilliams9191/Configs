@@ -257,20 +257,21 @@ fi
 
 create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
 
+# Only link .gitignore_global if it exists
+if [ -f "$SCRIPT_DIR/.gitignore_global" ]; then
+    create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global"
+fi
+
 # Only link wezterm if it exists (since it's optional)
 if [ -f "$SCRIPT_DIR/.wezterm.lua" ]; then
     create_symlink "$SCRIPT_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
 fi
 
-# Copy tmux config if it exists
-if [ -f "$SCRIPT_DIR/.tmux.conf" ]; then
-    backup_file "$HOME/.tmux.conf"
-    cp "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
-    print_success "Copied tmux configuration"
-elif [ -f "$HOME/.tmux.conf" ]; then
-    print_success "tmux configuration already exists"
-else
-    print_warning "No tmux configuration found in dotfiles or home directory"
+create_symlink "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
+
+# Link nvim config if it exists
+if [ -d "$SCRIPT_DIR/nvim" ]; then
+    create_symlink "$SCRIPT_DIR/nvim" "$HOME/.config/nvim"
 fi
 
 # Install TPM (Tmux Plugin Manager)
