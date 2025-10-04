@@ -220,29 +220,10 @@ fi
 # Install zsh plugins
 install_zsh_plugins
 
-# Create modified zshrc for Linux
-print_step "Creating Linux-specific zshrc..."
-if [ -f "$SCRIPT_DIR/.zshrc" ]; then
-    # Create a Linux version of zshrc
-    cp "$SCRIPT_DIR/.zshrc" "$SCRIPT_DIR/.zshrc.linux"
-    
-    # Replace macOS-specific paths in the Linux version
-    sed -i 's|source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme|source ~/.config/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme|g' "$SCRIPT_DIR/.zshrc.linux"
-    sed -i 's|source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh|source ~/.config/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh|g' "$SCRIPT_DIR/.zshrc.linux"
-    sed -i 's|source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh|source ~/.config/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh|g' "$SCRIPT_DIR/.zshrc.linux"
-    
-    # Update plugins line to include the installed plugins
-    sed -i 's|plugins=(git)|plugins=(git zsh-autosuggestions zsh-syntax-highlighting)|g' "$SCRIPT_DIR/.zshrc.linux"
-fi
-
 # Create symlinks for configuration files
 print_step "Creating configuration symlinks..."
 
-if [ -f "$SCRIPT_DIR/.zshrc.linux" ]; then
-    create_symlink "$SCRIPT_DIR/.zshrc.linux" "$HOME/.zshrc"
-else
-    create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
-fi
+create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
 
 create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
 

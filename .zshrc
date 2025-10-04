@@ -5,6 +5,15 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
+# OS-specific paths
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS
+  ZSH_PLUGIN_PATH="/opt/homebrew/share"
+else
+  # Linux
+  ZSH_PLUGIN_PATH="$HOME/.config/.oh-my-zsh/custom"
+fi
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
@@ -56,7 +65,12 @@ CASE_SENSITIVE="true"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  plugins=(git)
+else
+  plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+fi
 
 source $ZSH/oh-my-zsh.sh
 
@@ -103,7 +117,11 @@ alias gc='git commit'
 alias gl='git log'
 alias lg='lazygit'
 
-source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  source $ZSH_PLUGIN_PATH/powerlevel10k/powerlevel10k.zsh-theme
+else
+  source $ZSH_PLUGIN_PATH/themes/powerlevel10k/powerlevel10k.zsh-theme
+fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -116,7 +134,12 @@ setopt share_history
 setopt hist_expire_dups_first
 setopt hist_ignore_dups
 setopt hist_verify
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  source $ZSH_PLUGIN_PATH/zsh-autosuggestions/zsh-autosuggestions.zsh
+else
+  source $ZSH_PLUGIN_PATH/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
 
 # completion using arrow keys (based on history)
 bindkey '^[[A' history-search-backward
@@ -128,6 +151,11 @@ alias ls="eza --icons=always"
 
 # ---- Zoxide (better cd) ----
 eval "$(zoxide init zsh)"
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  source $ZSH_PLUGIN_PATH/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+else
+  source $ZSH_PLUGIN_PATH/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
 
 #cl
