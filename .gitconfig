@@ -3,3 +3,5 @@
     email = 157203047+DerekWilliams9191@users.noreply.github.com
 [core]
 	excludesfile = /Users/admin/.config/.gitignore_global
+[pager]
+  branch = false

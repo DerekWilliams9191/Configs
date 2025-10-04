@@ -19,6 +19,7 @@ ITEMS=(
     ".tmux.conf"
     ".wezterm.lua"
     ".p10k.zsh"
+    "Brewfile"
 )
 
 for item in "${ITEMS[@]}"; do

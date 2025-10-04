@@ -85,7 +85,17 @@ source $ZSH/oh-my-zsh.sh
 
 export EDITOR=vim
 
-alias cl='clear && printf "\e[3j"'
+# ----------------------------------------------- custom alias and funcs
+
+function cl() {
+  if [[ -n "$TMUX" ]]; then
+    # If in tmux, clear the visible screen and the tmux scrollback buffer
+    clear && tmux clear-history
+  else
+    # If not in tmux, just run the standard clear command
+    clear && printf "\e[3j"
+  fi
+}
 
 alias gs='git status'
 alias ga='git add'
@@ -120,3 +130,4 @@ alias ls="eza --icons=always"
 eval "$(zoxide init zsh)"
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+cl
