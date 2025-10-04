@@ -3,7 +3,6 @@
 set -e  # Exit on any error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
 # Colors for output
 RED='\033[0;31m'
@@ -42,26 +41,15 @@ detect_distro() {
     fi
 }
 
-# Backup existing files
-backup_file() {
-    local file="$1"
-    if [ -e "$file" ] || [ -L "$file" ]; then
-        mkdir -p "$BACKUP_DIR"
-        cp -R "$file" "$BACKUP_DIR/"
-        print_warning "Backed up existing $file to $BACKUP_DIR/"
-    fi
-}
-
-# Create symlink with backup
+# Create symlink
 create_symlink() {
     local source="$1"
     local target="$2"
-    
+
     if [ -e "$target" ] || [ -L "$target" ]; then
-        backup_file "$target"
         rm -rf "$target"
     fi
-    
+
     mkdir -p "$(dirname "$target")"
     ln -sf "$source" "$target"
     print_success "Linked $source -> $target"
@@ -80,7 +68,8 @@ install_packages_apt() {
         wget \
         tmux \
         vim \
-        neovim \
+        ripgrep \
+        fd-find \
         build-essential \
         fonts-powerline \
         fonts-noto-color-emoji
@@ -262,11 +251,6 @@ if [ -f "$SCRIPT_DIR/.gitignore_global" ]; then
     create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global"
 fi
 
-# Only link wezterm if it exists (since it's optional)
-if [ -f "$SCRIPT_DIR/.wezterm.lua" ]; then
-    create_symlink "$SCRIPT_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
-fi
-
 create_symlink "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
 
 # Link nvim config if it exists
@@ -331,6 +315,33 @@ else
     print_success "MesloLGS Nerd Font already installed"
 fi
 
+# Configure GNOME Terminal if available
+if command -v gnome-terminal &> /dev/null; then
+    print_step "Configuring GNOME Terminal..."
+    "$SCRIPT_DIR/configure-gnome-terminal.sh" || print_warning "Failed to configure GNOME Terminal"
+fi
+
+# Install Blur my Shell extension for GNOME
+if command -v gnome-shell &> /dev/null; then
+    print_step "Installing Blur my Shell extension..."
+    if ! gnome-extensions list | grep -q "blur-my-shell@aunetx"; then
+        # Download and install the extension
+        EXTENSION_UUID="blur-my-shell@aunetx"
+        EXTENSION_URL="https://extensions.gnome.org/extension-data/blur-my-shellaunetx.v64.shell-extension.zip"
+        EXTENSION_DIR="$HOME/.local/share/gnome-shell/extensions/$EXTENSION_UUID"
+
+        mkdir -p "$EXTENSION_DIR"
+        wget -q -O /tmp/blur-my-shell.zip "$EXTENSION_URL"
+        unzip -q -o /tmp/blur-my-shell.zip -d "$EXTENSION_DIR"
+        rm /tmp/blur-my-shell.zip
+
+        gnome-extensions enable "$EXTENSION_UUID" 2>/dev/null || print_warning "Extension installed but needs manual activation"
+        print_success "Blur my Shell extension installed"
+    else
+        print_success "Blur my Shell extension already installed"
+    fi
+fi
+
 # Final setup steps
 print_step "Performing final setup..."
 
@@ -344,12 +355,8 @@ echo "1. Restart your terminal or run: source ~/.zshrc"
 echo "2. Open tmux and press Ctrl+Space + I to install tmux plugins"
 echo "3. If you don't have a Powerlevel10k config, run: p10k configure"
 echo "4. Set your terminal font to 'MesloLGS NF' for best results"
+echo "5. (GNOME Terminal) Theme already applied! Open a new terminal window to see it"
 echo
-if [ -d "$BACKUP_DIR" ]; then
-    echo -e "${BLUE}Your original configs have been backed up to:${NC}"
-    echo "  $BACKUP_DIR"
-    echo
-fi
 
 # Reload shell configuration  
 print_step "Reloading shell configuration..."

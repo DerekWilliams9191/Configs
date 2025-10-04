@@ -3,7 +3,6 @@
 set -e  # Exit on any error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
 # Colors for output
 RED='\033[0;31m'
@@ -28,26 +27,15 @@ print_error() {
     echo -e "${RED}✗${NC} $1"
 }
 
-# Backup existing files
-backup_file() {
-    local file="$1"
-    if [ -e "$file" ] || [ -L "$file" ]; then
-        mkdir -p "$BACKUP_DIR"
-        cp -R "$file" "$BACKUP_DIR/"
-        print_warning "Backed up existing $file to $BACKUP_DIR/"
-    fi
-}
-
-# Create symlink with backup
+# Create symlink
 create_symlink() {
     local source="$1"
     local target="$2"
-    
+
     if [ -e "$target" ] || [ -L "$target" ]; then
-        backup_file "$target"
         rm -rf "$target"
     fi
-    
+
     mkdir -p "$(dirname "$target")"
     ln -sf "$source" "$target"
     print_success "Linked $source -> $target"
@@ -86,6 +74,8 @@ BREW_FORMULAE=(
     "zsh-syntax-highlighting"
     "powerlevel10k"
     "tmux"
+    "ripgrep"
+    "fd-find"
 )
 
 for formula in "${BREW_FORMULAE[@]}"; do
@@ -134,7 +124,6 @@ if [ -f "$SCRIPT_DIR/.gitignore_global" ]; then
     create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global"
 fi
 
-create_symlink "$SCRIPT_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
 create_symlink "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
 
 # Link nvim config if it exists
@@ -229,11 +218,6 @@ echo "3. If iTerm2 preferences weren't found, configure iTerm2 and export prefer
 echo "   $SCRIPT_DIR/iterm2/com.googlecode.iterm2.plist"
 echo "4. If you don't have a Powerlevel10k config, run: p10k configure"
 echo
-if [ -d "$BACKUP_DIR" ]; then
-    echo -e "${BLUE}Your original configs have been backed up to:${NC}"
-    echo "  $BACKUP_DIR"
-    echo
-fi
 
 # Reload shell configuration
 print_step "Reloading shell configuration..."

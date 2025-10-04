@@ -56,7 +56,7 @@ CASE_SENSITIVE="true"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -103,7 +103,7 @@ alias gc='git commit'
 alias gl='git log'
 alias lg='lazygit'
 
-source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
+source ~/.config/.oh-my-zsh/custom/themes/powerlevel10k/powerlevel10k.zsh-theme
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
@@ -116,7 +116,7 @@ setopt share_history
 setopt hist_expire_dups_first
 setopt hist_ignore_dups
 setopt hist_verify
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.config/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # completion using arrow keys (based on history)
 bindkey '^[[A' history-search-backward
@@ -128,6 +128,6 @@ alias ls="eza --icons=always"
 
 # ---- Zoxide (better cd) ----
 eval "$(zoxide init zsh)"
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source ~/.config/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 #cl

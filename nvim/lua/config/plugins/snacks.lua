@@ -31,6 +31,11 @@ return {
 		},
 
 		picker = {
+			formatters = {
+				file = {
+					filename_first = true,
+				},
+			},
 			sources = {
 				explorer = {
 					auto_close = false,
@@ -262,6 +267,7 @@ return {
 			"<leader>ff",
 			function()
 				require("snacks").picker.files({
+					cmd = "fd",
 					ignored = false,
 					hidden = true,
 					follow = true,
