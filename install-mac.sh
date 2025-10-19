@@ -75,7 +75,7 @@ BREW_FORMULAE=(
     "powerlevel10k"
     "tmux"
     "ripgrep"
-    "fd-find"
+    "fd"
 )
 
 for formula in "${BREW_FORMULAE[@]}"; do
@@ -154,7 +154,6 @@ ITERM2_CONFIG_DIR="$SCRIPT_DIR/iterm2"
 
 # Copy iTerm2 preferences if they exist in the dotfiles
 if [ -f "$ITERM2_CONFIG_DIR/com.googlecode.iterm2.plist" ]; then
-    backup_file "$ITERM2_PREF_DIR/com.googlecode.iterm2.plist"
     cp "$ITERM2_CONFIG_DIR/com.googlecode.iterm2.plist" "$ITERM2_PREF_DIR/"
     print_success "iTerm2 preferences copied"
 else
