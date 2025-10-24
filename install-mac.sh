@@ -163,14 +163,10 @@ else
 fi
 
 # Set up Powerlevel10k
-if [ ! -f "$HOME/.p10k.zsh" ]; then
-    if [ -f "$SCRIPT_DIR/.p10k.zsh" ]; then
-        create_symlink "$SCRIPT_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
-    else
-        print_warning "No Powerlevel10k config found. Run 'p10k configure' after installation."
-    fi
+if [ -f "$SCRIPT_DIR/.p10k.zsh" ]; then
+    create_symlink "$SCRIPT_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
 else
-    print_success "Powerlevel10k configuration already exists"
+    print_warning "No Powerlevel10k config found. Run 'p10k configure' after installation."
 fi
 
 # Install MesloLGS Nerd Font (same as Linux script for consistency)

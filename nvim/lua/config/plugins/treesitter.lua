@@ -1,7 +1,9 @@
 return {
   "nvim-treesitter/nvim-treesitter",
   event = { "BufReadPre", "BufNewFile" },
-  build = ":TSUpdate",
+  build = function()
+    require("nvim-treesitter.install").update({ with_sync = true })
+  end,
   dependencies = {
     "windwp/nvim-ts-autotag",
   },
@@ -13,6 +15,16 @@ return {
     treesitter.setup({ -- enable syntax highlighting
       highlight = {
         enable = true,
+        -- Disable vim regex highlighting to prevent conflicts
+        additional_vim_regex_highlighting = false,
+        -- Disable highlighting for files larger than 100KB
+        disable = function(lang, buf)
+          local max_filesize = 100 * 1024 -- 100 KB
+          local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+          if ok and stats and stats.size > max_filesize then
+            return true
+          end
+        end,
       },
       -- enable indentation
       indent = { enable = true },
