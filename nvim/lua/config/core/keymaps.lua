@@ -45,3 +45,9 @@ keymap.set("n", "<leader>t6", "6gt", { desc = "Go to tab 6" })
 keymap.set("n", "<leader>t7", "7gt", { desc = "Go to tab 7" })
 keymap.set("n", "<leader>t8", "8gt", { desc = "Go to tab 8" })
 keymap.set("n", "<leader>t9", "9gt", { desc = "Go to tab 9" })
+
+-- Command aliases for common typos
+vim.api.nvim_create_user_command("W", "w", { desc = "Save file" })
+vim.api.nvim_create_user_command("Wq", "wq", { desc = "Save and quit" })
+vim.api.nvim_create_user_command("WQ", "wq", { desc = "Save and quit" })
+vim.api.nvim_create_user_command("Q", "q", { desc = "Quit" })
