@@ -1,0 +1,43 @@
+# Ghostty Configuration
+
+# Let tmux handle mouse selections
+clipboard-read = allow
+clipboard-write = allow
+
+# Important: Don't let ghostty intercept the selection
+# when tmux is active
+clipboard-paste-protection = false
+
+# Background settings
+background = #14191e
+background-opacity = 0.8
+background-blur-radius = 15
+
+# Foreground
+foreground = #dbdbdb
+
+# Cursor
+cursor-color = #fefffe
+
+# Selection
+selection-background = #b3d7ff
+
+# Color palette
+palette = 0=#14191e
+palette = 1=#b43c29
+palette = 2=#00c200
+palette = 3=#c7c400
+palette = 4=#2743c7
+palette = 5=#bf3fbd
+palette = 6=#00c5c7
+palette = 7=#c7c7c7
+palette = 8=#676767
+palette = 9=#dc7974
+palette = 10=#57e690
+palette = 11=#ece100
+palette = 12=#a6aaf1
+palette = 13=#e07de0
+palette = 14=#5ffdff
+palette = 15=#feffff
+
+mouse-scroll-multiplier = 0.4

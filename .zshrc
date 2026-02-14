@@ -67,7 +67,7 @@ CASE_SENSITIVE="true"
 # Add wisely, as too many plugins slow down shell startup.
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  plugins=(git)
+  plugins=(git fzf-tab)
 else
   plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 fi
@@ -116,6 +116,7 @@ alias ga='git add'
 alias gc='git commit'
 alias gl='git log'
 alias lg='lazygit'
+alias sqlitebrowser='open -a "DB Browser for SQLite"'
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   source $ZSH_PLUGIN_PATH/powerlevel10k/powerlevel10k.zsh-theme
@@ -152,6 +153,12 @@ alias ls="eza --icons=always"
 # ---- Zoxide (better cd) ----
 eval "$(zoxide init zsh)"
 
+# ---- FZF ----
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # Set up fzf key bindings (Ctrl-R for history)
+  source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+fi
+
 if [[ "$OSTYPE" == "darwin"* ]]; then
   source $ZSH_PLUGIN_PATH/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 else
@@ -159,3 +166,18 @@ else
 fi
 
 #cl
+export PATH="$HOME/.local/bin:$PATH"
+
+
+
+CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
+
+# bun completions
+[ -s "/Users/admin/.bun/_bun" ] && source "/Users/admin/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# opencode
+export PATH=/Users/admin/.opencode/bin:$PATH

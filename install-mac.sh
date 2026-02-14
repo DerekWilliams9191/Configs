@@ -162,6 +162,20 @@ else
     print_warning "  $ITERM2_CONFIG_DIR/com.googlecode.iterm2.plist"
 fi
 
+# Set up Ghostty configuration
+print_step "Setting up Ghostty configuration..."
+
+GHOSTTY_PREF_DIR="$HOME/Library/Application Support/com.mitchellh.ghostty"
+GHOSTTY_CONFIG_DIR="$SCRIPT_DIR/ghostty"
+
+if [ -f "$GHOSTTY_CONFIG_DIR/config" ]; then
+    mkdir -p "$GHOSTTY_PREF_DIR"
+    create_symlink "$GHOSTTY_CONFIG_DIR/config" "$GHOSTTY_PREF_DIR/config"
+    print_success "Ghostty configuration linked"
+else
+    print_warning "No Ghostty config found in dotfiles"
+fi
+
 # Set up Powerlevel10k
 if [ -f "$SCRIPT_DIR/.p10k.zsh" ]; then
     create_symlink "$SCRIPT_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
