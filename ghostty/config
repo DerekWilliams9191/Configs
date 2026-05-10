@@ -1,5 +1,18 @@
 # Ghostty Configuration
 
+# Stop prompting
+#confirm-close-surface = false
+
+# Disable weird fullscreen shortcut
+keybind = cmd+enter=unbind
+
+# DISABLE THE STUPID FUCKING BELL
+bell-features = no-audio
+bell-features = no-attention
+bell-features = no-title
+bell-features = no-border
+bell-features =
+
 # Let tmux handle mouse selections
 clipboard-read = allow
 clipboard-write = allow
@@ -27,7 +40,7 @@ palette = 0=#14191e
 palette = 1=#b43c29
 palette = 2=#00c200
 palette = 3=#c7c400
-palette = 4=#2743c7
+palette = 4=#5c7aff
 palette = 5=#bf3fbd
 palette = 6=#00c5c7
 palette = 7=#c7c7c7
@@ -41,3 +54,7 @@ palette = 14=#5ffdff
 palette = 15=#feffff
 
 mouse-scroll-multiplier = 0.4
+
+# Disable the stupid ligatures for things like != or ===
+font-feature = -liga
+font-feature = -calt

@@ -14,13 +14,13 @@ This repository contains my personal dotfiles and configurations for macOS and L
 
    **macOS:**
    ```bash
-   cd ~/.config
-   ./install.sh
+   cd ~/.config/Configs
+   ./install-mac.sh
    ```
-   
+
    **Linux:**
    ```bash
-   cd ~/.config
+   cd ~/.config/Configs
    ./install-linux.sh
    ```
 
@@ -31,10 +31,10 @@ This repository contains my personal dotfiles and configurations for macOS and L
 
 ## What's Included
 
-- **Zsh configuration** with Oh My Zsh, Powerlevel10k theme
+- **Zsh configuration** with Oh My Zsh, Powerlevel10k theme, fzf-tab, ctrl+r fzf history
 - **Tmux configuration** with vim-style keybindings and plugins
 - **Git configuration** with global gitignore
-- **WezTerm configuration**
+- **Ghostty configuration** (macOS)
 - **iTerm2 preferences** (macOS only)
 - **Package management** via Homebrew (macOS) or native package managers (Linux)
 
@@ -73,8 +73,38 @@ This repository contains my personal dotfiles and configurations for macOS and L
 
 The `install-linux.sh` script supports:
 - **Ubuntu/Debian** - Uses apt package manager
-- **Fedora/RHEL/CentOS** - Uses dnf package manager  
+- **Fedora/Rocky/AlmaLinux** - Uses dnf package manager
+- **RHEL/CentOS** - Uses dnf if available, falls back to yum
+- **Amazon Linux** - Uses yum on AL2, dnf on AL2023
 - **Arch/Manjaro** - Uses pacman package manager
+
+### Local vs remote profile
+
+The shell behaves slightly differently on remote hosts. `DOTFILES_PROFILE`
+controls this — defaults to `local`. Setting it to `remote` (the Linux
+installer does this automatically when run over SSH or without a graphical
+display) causes the shell to auto-attach to a tmux session on login. The last
+attached session name is saved to `~/.tmux-last-session`; first login uses
+`main`.
+
+To force remote behavior on a host:
+
+```bash
+echo 'export DOTFILES_PROFILE=remote' >> ~/.zshenv
+```
+
+### Ghostty over SSH
+
+If you SSH from Ghostty into a host that doesn't have Ghostty's terminfo,
+you'll see `'xterm-ghostty': unknown terminal type`. Two ways to fix it:
+
+- **Push terminfo from local (run once per remote host):**
+  ```bash
+  infocmp -x ghostty | ssh user@host -- tic -x -
+  ```
+- **Fallback (no setup needed):** the `ssh()` wrapper in `.zshrc`
+  auto-downgrades `TERM=xterm-256color` when SSHing from Ghostty. Use
+  `command ssh` to bypass it when you want the real `TERM`.
 
 Key differences from macOS:
 - No iTerm2 (use any terminal with Nerd Font support)

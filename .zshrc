@@ -5,6 +5,9 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
+# local | remote — remote installer sets DOTFILES_PROFILE=remote in ~/.zshenv
+DOTFILES_PROFILE="${DOTFILES_PROFILE:-local}"
+
 # OS-specific paths
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS
@@ -69,7 +72,7 @@ CASE_SENSITIVE="true"
 if [[ "$OSTYPE" == "darwin"* ]]; then
   plugins=(git fzf-tab)
 else
-  plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+  plugins=(git fzf-tab zsh-autosuggestions zsh-syntax-highlighting)
 fi
 
 source $ZSH/oh-my-zsh.sh
@@ -111,12 +114,22 @@ function cl() {
   fi
 }
 
+# Downgrade TERM when SSHing from Ghostty so remote hosts without ghostty
+# terminfo don't error with "xterm-ghostty: unknown terminal type". Push
+# proper terminfo with: infocmp -x ghostty | ssh user@host -- tic -x -
+ssh() {
+  if [[ "$TERM" == "xterm-ghostty" ]]; then
+    TERM=xterm-256color command ssh "$@"
+  else
+    command ssh "$@"
+  fi
+}
+
 alias gs='git status'
 alias ga='git add'
 alias gc='git commit'
 alias gl='git log'
 alias lg='lazygit'
-alias sqlitebrowser='open -a "DB Browser for SQLite"'
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   source $ZSH_PLUGIN_PATH/powerlevel10k/powerlevel10k.zsh-theme
@@ -154,10 +167,20 @@ alias ls="eza --icons=always"
 eval "$(zoxide init zsh)"
 
 # ---- FZF ----
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  # Set up fzf key bindings (Ctrl-R for history)
-  source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
-fi
+# Source key-bindings (Ctrl-R history, Ctrl-T file picker, Alt-C cd) from the
+# first path that exists. Covers brew, apt, dnf/pacman, and the junegunn
+# git-clone install used by the yum branch.
+for _fzf_keys in \
+  /opt/homebrew/opt/fzf/shell/key-bindings.zsh \
+  /usr/share/doc/fzf/examples/key-bindings.zsh \
+  /usr/share/fzf/key-bindings.zsh \
+  "$HOME/.fzf/shell/key-bindings.zsh"; do
+  if [[ -f "$_fzf_keys" ]]; then
+    source "$_fzf_keys"
+    break
+  fi
+done
+unset _fzf_keys
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   source $ZSH_PLUGIN_PATH/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
@@ -180,4 +203,19 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # opencode
-export PATH=/Users/admin/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
+
+# Remote-only behaviors: auto-attach to tmux on remote login.
+# Activated by exporting DOTFILES_PROFILE=remote in ~/.zshenv on remote hosts.
+if [[ "$DOTFILES_PROFILE" == "remote" ]]; then
+  # Reads the last attached session name from ~/.tmux-last-session (set by a tmux
+  # hook on detach). Defaults to "main" the first time.
+  if [[ -z "$TMUX" ]] && [[ $- == *i* ]] && command -v tmux >/dev/null 2>&1; then
+    last_session="$(cat "$HOME/.tmux-last-session" 2>/dev/null || echo main)"
+    # Check if session is already attached
+    session_attached=$(tmux list-sessions -F '#{session_name} #{session_attached}' 2>/dev/null | grep "^$last_session " | awk '{print $2}')
+    if [[ "$session_attached" != "1" ]]; then
+      tmux attach -t "$last_session" 2>/dev/null || tmux new -s "$last_session"
+    fi
+  fi
+fi
