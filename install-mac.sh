@@ -162,6 +162,11 @@ else
     print_success "TPM already installed"
 fi
 
+# Install tmux plugins non-interactively
+print_step "Installing tmux plugins..."
+"$HOME/.tmux/plugins/tpm/bin/install_plugins"
+print_success "Tmux plugins installed"
+
 # Set up iTerm2 configuration
 print_step "Setting up iTerm2 configuration..."
 
@@ -247,10 +252,9 @@ echo -e "${GREEN}🎉 Installation complete!${NC}"
 echo
 echo -e "${YELLOW}Next steps:${NC}"
 echo "1. Restart your terminal or run: source ~/.zshrc"
-echo "2. Open tmux and press Ctrl+Space + I to install tmux plugins"
-echo "3. If iTerm2 preferences weren't found, configure iTerm2 and export preferences to:"
+echo "2. If iTerm2 preferences weren't found, configure iTerm2 and export preferences to:"
 echo "   $SCRIPT_DIR/iterm2/com.googlecode.iterm2.plist"
-echo "4. If you don't have a Powerlevel10k config, run: p10k configure"
+echo "3. If you don't have a Powerlevel10k config, run: p10k configure"
 echo
 echo -e "${YELLOW}Ghostty over SSH${NC}"
 echo "If you SSH from Ghostty into a host that doesn't know xterm-ghostty,"

@@ -347,6 +347,11 @@ else
     print_success "TPM already installed"
 fi
 
+# Install tmux plugins non-interactively
+print_step "Installing tmux plugins..."
+"$HOME/.tmux/plugins/tpm/bin/install_plugins"
+print_success "Tmux plugins installed"
+
 # Set up Powerlevel10k
 if [ -f "$SCRIPT_DIR/.p10k.zsh" ]; then
     create_symlink "$SCRIPT_DIR/.p10k.zsh" "$HOME/.p10k.zsh"
@@ -436,10 +441,9 @@ echo -e "${GREEN}🎉 Installation complete!${NC}"
 echo
 echo -e "${YELLOW}Next steps:${NC}"
 echo "1. Restart your terminal or run: source ~/.zshrc"
-echo "2. Open tmux and press Ctrl+Space + I to install tmux plugins"
-echo "3. If you don't have a Powerlevel10k config, run: p10k configure"
-echo "4. Set your terminal font to 'MesloLGS NF' for best results"
-echo "5. (GNOME Terminal) Theme already applied! Open a new terminal window to see it"
+echo "2. If you don't have a Powerlevel10k config, run: p10k configure"
+echo "3. Set your terminal font to 'MesloLGS NF' for best results"
+echo "4. (GNOME Terminal) Theme already applied! Open a new terminal window to see it"
 echo
 echo -e "${YELLOW}Ghostty over SSH${NC}"
 echo "If you SSH from Ghostty into a host that doesn't know xterm-ghostty,"
