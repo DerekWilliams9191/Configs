@@ -245,17 +245,21 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # opencode
 export PATH="$HOME/.opencode/bin:$PATH"
 
-# Remote-only behaviors: auto-attach to tmux on remote login.
-# Activated by exporting DOTFILES_PROFILE=remote in ~/.zshenv on remote hosts.
+# Remote-only: auto-attach to last session if it exists and is not in use.
 if [[ "$DOTFILES_PROFILE" == "remote" ]]; then
-  # Reads the last attached session name from ~/.tmux-last-session (set by a tmux
-  # hook on detach). Defaults to "main" the first time.
+  # Gaurd against joining if already in tmux session
   if [[ -z "$TMUX" ]] && [[ $- == *i* ]] && command -v tmux >/dev/null 2>&1; then
-    last_session="$(cat "$HOME/.tmux-last-session" 2>/dev/null || echo main)"
-    # Check if session is already attached
-    session_attached=$(tmux list-sessions -F '#{session_name} #{session_attached}' 2>/dev/null | grep "^$last_session " | awk '{print $2}')
-    if [[ "$session_attached" != "1" ]]; then
-      tmux attach -t "$last_session" 2>/dev/null || tmux new -s "$last_session"
+    last_session="$(cat "$HOME/.tmux-last-session" 2>/dev/null)"
+    if [[ -z "$last_session" ]]; then
+      # No saved session — start tmux fresh
+      tmux
+    else
+      # "" = no such session, "0" = free, "1"+ = in use
+      session_attached=$(tmux list-sessions -F '#{session_name} #{session_attached}' 2>/dev/null \
+        | awk -v s="$last_session" '$1 == s {print $2}')
+      if [[ "$session_attached" == "0" ]]; then
+        tmux attach -t "$last_session"
+      fi
     fi
   fi
 fi
