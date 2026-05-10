@@ -130,6 +130,41 @@ alias ga='git add'
 alias gc='git commit'
 alias gl='git log'
 alias lg='lazygit'
+alias sz='source ~/.zshrc'
+
+
+function sc() {
+  tmp_settings="$(mktemp)"
+
+  trap 'rm -f "$tmp_settings"' EXIT
+
+  rm -rf ~/.claude/projects \
+         ~/.claude/file-history \
+         ~/.claude/plans \
+         ~/.claude/paste-cache \
+         ~/.claude/image-cache
+
+  rm -f ~/.claude/history.jsonl
+
+  cat > "$tmp_settings" <<'JSON'
+{
+  "autoMemoryEnabled": false,
+  "alwaysThinkingEnabled": true
+}
+JSON
+
+  CLAUDE_CODE_DISABLE_AUTO_MEMORY=1 \
+  claude \
+    --settings "$tmp_settings" \
+    --model 'opus[1m]' \
+    --effort high \
+    --verbose \
+    --dangerously-skip-permissions \
+    --teammate-mode tmux
+}
+
+
+# ------------------------------------------------------------------------
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   source $ZSH_PLUGIN_PATH/powerlevel10k/powerlevel10k.zsh-theme
