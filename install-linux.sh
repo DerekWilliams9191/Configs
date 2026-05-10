@@ -240,7 +240,7 @@ install_packages_yum() {
 
 # Install zsh plugins
 install_zsh_plugins() {
-    local ZSH_CUSTOM="$SCRIPT_DIR/.oh-my-zsh/custom"
+    local ZSH_CUSTOM="$HOME/.oh-my-zsh/custom"
 
     # Install zsh-autosuggestions
     if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
@@ -308,10 +308,10 @@ case "$DISTRO" in
 esac
 
 # Install Oh My Zsh if not present
-if [ ! -d "$SCRIPT_DIR/.oh-my-zsh" ]; then
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
     print_step "Installing Oh My Zsh..."
-    git clone https://github.com/ohmyzsh/ohmyzsh.git "$SCRIPT_DIR/.oh-my-zsh"
-    print_success "Oh My Zsh installed to .config"
+    git clone https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"
+    print_success "Oh My Zsh installed to $HOME/.oh-my-zsh"
 else
     print_success "Oh My Zsh already present"
 fi
@@ -459,7 +459,3 @@ echo "  Ghostty installed locally), have someone with Ghostty send you the"
 echo "  terminfo file, then on the remote run:"
 echo "      tic -x ghostty.terminfo"
 echo
-
-# Reload shell configuration  
-print_step "Reloading shell configuration..."
-exec zsh -l

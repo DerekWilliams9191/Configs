@@ -113,19 +113,18 @@ for cask in "${BREW_CASKS[@]}"; do
 done
 
 # Install Oh My Zsh if not present
-if [ ! -d "$SCRIPT_DIR/.oh-my-zsh" ]; then
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
     print_step "Installing Oh My Zsh..."
-    # Clone Oh My Zsh to our config directory
-    git clone https://github.com/ohmyzsh/ohmyzsh.git "$SCRIPT_DIR/.oh-my-zsh"
-    print_success "Oh My Zsh installed to .config"
+    git clone https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"
+    print_success "Oh My Zsh installed to $HOME/.oh-my-zsh"
 else
     print_success "Oh My Zsh already present"
 fi
 
 # Install fzf-tab plugin
-if [ ! -d "$SCRIPT_DIR/.oh-my-zsh/custom/plugins/fzf-tab" ]; then
+if [ ! -d "$HOME/.oh-my-zsh/custom/plugins/fzf-tab" ]; then
     print_step "Installing fzf-tab..."
-    git clone https://github.com/Aloxaf/fzf-tab "$SCRIPT_DIR/.oh-my-zsh/custom/plugins/fzf-tab"
+    git clone https://github.com/Aloxaf/fzf-tab "$HOME/.oh-my-zsh/custom/plugins/fzf-tab"
     print_success "fzf-tab installed"
 else
     print_success "fzf-tab already installed"
@@ -271,7 +270,3 @@ echo "  Ghostty installed locally), have someone with Ghostty send you the"
 echo "  terminfo file, then on the remote run:"
 echo "      tic -x ghostty.terminfo"
 echo
-
-# Reload shell configuration
-print_step "Reloading shell configuration..."
-exec zsh -l
