@@ -59,10 +59,12 @@ create_symlink() {
 install_packages_apt() {
     print_step "Installing packages via apt..."
     sudo apt update
-    
+
     # Install packages
     sudo apt install -y \
         zsh \
+        bash \
+        fzf \
         git \
         curl \
         wget \
@@ -105,9 +107,11 @@ install_packages_apt() {
 install_packages_dnf() {
     print_step "Installing packages via dnf..."
     sudo dnf update -y
-    
+
     sudo dnf install -y \
         zsh \
+        bash \
+        fzf \
         git \
         curl \
         wget \
@@ -144,9 +148,11 @@ install_packages_dnf() {
 install_packages_pacman() {
     print_step "Installing packages via pacman..."
     sudo pacman -Syu --noconfirm
-    
+
     sudo pacman -S --noconfirm \
         zsh \
+        bash \
+        fzf \
         git \
         curl \
         wget \
@@ -161,22 +167,92 @@ install_packages_pacman() {
         lazygit
 }
 
+install_packages_yum() {
+    # For Amazon Linux 2 and older RHEL/CentOS where dnf isn't available.
+    # eza, lazygit, and fzf aren't in the default repos here, so we install
+    # them from upstream releases / git.
+    print_step "Installing packages via yum..."
+    sudo yum update -y
+
+    sudo yum install -y \
+        zsh \
+        bash \
+        git \
+        curl \
+        wget \
+        tmux \
+        vim \
+        gcc \
+        gcc-c++ \
+        make \
+        unzip \
+        tar
+
+    # fzf via official installer (no yum package)
+    if ! command -v fzf &> /dev/null; then
+        print_step "Installing fzf from git..."
+        if [ ! -d "$HOME/.fzf" ]; then
+            git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
+        fi
+        "$HOME/.fzf/install" --bin
+        # Symlink the binary into a directory on PATH for non-interactive shells
+        mkdir -p "$HOME/.local/bin"
+        ln -sf "$HOME/.fzf/bin/fzf" "$HOME/.local/bin/fzf"
+    fi
+
+    # eza from upstream release tarball
+    if ! command -v eza &> /dev/null; then
+        print_step "Installing eza from GitHub release..."
+        EZA_VERSION=$(curl -s "https://api.github.com/repos/eza-community/eza/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+        cd /tmp
+        curl -Lo eza.tar.gz "https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
+        tar xf eza.tar.gz
+        mkdir -p "$HOME/.local/bin"
+        mv eza "$HOME/.local/bin/eza"
+        rm -f eza.tar.gz
+    fi
+
+    # zoxide via upstream installer
+    if ! command -v zoxide &> /dev/null; then
+        print_step "Installing zoxide..."
+        curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+
+    # lazygit from GitHub release tarball
+    if ! command -v lazygit &> /dev/null; then
+        print_step "Installing lazygit..."
+        LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+        cd /tmp
+        curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+        tar xf lazygit.tar.gz lazygit
+        sudo install lazygit /usr/local/bin
+        rm lazygit.tar.gz lazygit
+    fi
+}
+
 # Install zsh plugins
 install_zsh_plugins() {
     local ZSH_CUSTOM="$SCRIPT_DIR/.oh-my-zsh/custom"
-    
+
     # Install zsh-autosuggestions
     if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
         print_step "Installing zsh-autosuggestions..."
         git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
     fi
-    
+
     # Install zsh-syntax-highlighting
     if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
         print_step "Installing zsh-syntax-highlighting..."
         git clone https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
     fi
-    
+
+    # Install fzf-tab
+    if [ ! -d "$ZSH_CUSTOM/plugins/fzf-tab" ]; then
+        print_step "Installing fzf-tab..."
+        git clone https://github.com/Aloxaf/fzf-tab "$ZSH_CUSTOM/plugins/fzf-tab"
+    fi
+
     # Install powerlevel10k theme
     if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
         print_step "Installing powerlevel10k theme..."
@@ -194,8 +270,24 @@ case "$DISTRO" in
     ubuntu|debian|mint|pop)
         install_packages_apt
         ;;
-    fedora|centos|rhel|rocky|almalinux)
+    fedora|rocky|almalinux)
         install_packages_dnf
+        ;;
+    rhel|centos)
+        # Newer RHEL/CentOS ship dnf; older ones only have yum.
+        if command -v dnf >/dev/null 2>&1; then
+            install_packages_dnf
+        else
+            install_packages_yum
+        fi
+        ;;
+    amzn)
+        # Amazon Linux 2 is yum-only; AL2023 uses dnf.
+        if command -v dnf >/dev/null 2>&1; then
+            install_packages_dnf
+        else
+            install_packages_yum
+        fi
         ;;
     arch|manjaro|endeavouros)
         install_packages_pacman
@@ -203,7 +295,7 @@ case "$DISTRO" in
     *)
         print_error "Unsupported distribution: $DISTRO"
         print_error "Please install packages manually:"
-        print_error "  zsh git curl wget tmux vim neovim eza zoxide lazygit"
+        print_error "  zsh bash fzf git curl wget tmux vim neovim eza zoxide lazygit"
         exit 1
         ;;
 esac
@@ -260,6 +352,16 @@ if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.profile"
     export PATH="$HOME/.local/bin:$PATH"
+fi
+
+# Mark this machine as a "remote" host so .zshrc auto-attaches to tmux on login.
+# Heuristic: SSH session, or no graphical display available. Idempotent.
+if [[ -n "$SSH_CONNECTION" ]] || [[ -z "$DISPLAY$WAYLAND_DISPLAY" ]]; then
+    if ! grep -q "DOTFILES_PROFILE=remote" "$HOME/.zshenv" 2>/dev/null; then
+        print_step "Marking this host as remote (DOTFILES_PROFILE=remote in ~/.zshenv)"
+        echo 'export DOTFILES_PROFILE=remote' >> "$HOME/.zshenv"
+        print_success "Remote profile enabled"
+    fi
 fi
 
 # Make zsh the default shell
@@ -333,6 +435,24 @@ echo "2. Open tmux and press Ctrl+Space + I to install tmux plugins"
 echo "3. If you don't have a Powerlevel10k config, run: p10k configure"
 echo "4. Set your terminal font to 'MesloLGS NF' for best results"
 echo "5. (GNOME Terminal) Theme already applied! Open a new terminal window to see it"
+echo
+echo -e "${YELLOW}Ghostty over SSH${NC}"
+echo "If you SSH from Ghostty into a host that doesn't know xterm-ghostty,"
+echo "you'll see: 'xterm-ghostty': unknown terminal type."
+echo
+echo "Two ways to fix it:"
+echo
+echo "  [Local — Ghostty machine] Push Ghostty's terminfo to the remote (run ONCE per host):"
+echo "      infocmp -x ghostty | ssh user@host -- tic -x -"
+echo
+echo "  [Local — fallback] The ssh() wrapper in .zshrc auto-downgrades TERM"
+echo "      to xterm-256color when SSHing from Ghostty. Already enabled,"
+echo "      no action needed. Use 'command ssh' to bypass it."
+echo
+echo "  [Remote] If you can't run the local command above (e.g. you don't have"
+echo "  Ghostty installed locally), have someone with Ghostty send you the"
+echo "  terminfo file, then on the remote run:"
+echo "      tic -x ghostty.terminfo"
 echo
 
 # Reload shell configuration  

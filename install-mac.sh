@@ -67,7 +67,9 @@ print_step "Installing essential packages..."
 
 # Formulae
 BREW_FORMULAE=(
+    "bash"
     "eza"
+    "fzf"
     "zoxide"
     "lazygit"
     "zsh-autosuggestions"
@@ -111,6 +113,15 @@ if [ ! -d "$SCRIPT_DIR/.oh-my-zsh" ]; then
     print_success "Oh My Zsh installed to .config"
 else
     print_success "Oh My Zsh already present"
+fi
+
+# Install fzf-tab plugin
+if [ ! -d "$SCRIPT_DIR/.oh-my-zsh/custom/plugins/fzf-tab" ]; then
+    print_step "Installing fzf-tab..."
+    git clone https://github.com/Aloxaf/fzf-tab "$SCRIPT_DIR/.oh-my-zsh/custom/plugins/fzf-tab"
+    print_success "fzf-tab installed"
+else
+    print_success "fzf-tab already installed"
 fi
 
 # Create symlinks for configuration files
@@ -226,6 +237,24 @@ echo "2. Open tmux and press Ctrl+Space + I to install tmux plugins"
 echo "3. If iTerm2 preferences weren't found, configure iTerm2 and export preferences to:"
 echo "   $SCRIPT_DIR/iterm2/com.googlecode.iterm2.plist"
 echo "4. If you don't have a Powerlevel10k config, run: p10k configure"
+echo
+echo -e "${YELLOW}Ghostty over SSH${NC}"
+echo "If you SSH from Ghostty into a host that doesn't know xterm-ghostty,"
+echo "you'll see: 'xterm-ghostty': unknown terminal type."
+echo
+echo "Two ways to fix it:"
+echo
+echo "  [Local — Ghostty machine] Push Ghostty's terminfo to the remote (run ONCE per host):"
+echo "      infocmp -x ghostty | ssh user@host -- tic -x -"
+echo
+echo "  [Local — fallback] The ssh() wrapper in .zshrc auto-downgrades TERM"
+echo "      to xterm-256color when SSHing from Ghostty. Already enabled,"
+echo "      no action needed. Use 'command ssh' to bypass it."
+echo
+echo "  [Remote] If you can't run the local command above (e.g. you don't have"
+echo "  Ghostty installed locally), have someone with Ghostty send you the"
+echo "  terminfo file, then on the remote run:"
+echo "      tic -x ghostty.terminfo"
 echo
 
 # Reload shell configuration
