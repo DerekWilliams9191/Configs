@@ -173,7 +173,12 @@ else
 fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# Remote profile uses gruvbox-tinted bars to match the remote tmux theme.
+if [[ "$DOTFILES_PROFILE" == "remote" ]]; then
+  [[ ! -f ~/.p10k-gruvbox.zsh ]] || source ~/.p10k-gruvbox.zsh
+else
+  [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+fi
 
 # Better zsh history
 HISTFILE=$HOME/.zhistory

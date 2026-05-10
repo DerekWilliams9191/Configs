@@ -4,6 +4,13 @@ set -e  # Exit on any error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Profile: --local or --remote. Required.
+case "$1" in
+    --local)  PROFILE="local" ;;
+    --remote) PROFILE="remote" ;;
+    *)        echo "Usage: $0 --local|--remote"; exit 1 ;;
+esac
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -193,6 +200,9 @@ if [ -f "$SCRIPT_DIR/.p10k.zsh" ]; then
 else
     print_warning "No Powerlevel10k config found. Run 'p10k configure' after installation."
 fi
+if [ -f "$SCRIPT_DIR/.p10k-gruvbox.zsh" ]; then
+    create_symlink "$SCRIPT_DIR/.p10k-gruvbox.zsh" "$HOME/.p10k-gruvbox.zsh"
+fi
 
 # Install MesloLGS Nerd Font (same as Linux script for consistency)
 print_step "Installing MesloLGS Nerd Font..."
@@ -211,6 +221,11 @@ if [ ! -f "$FONT_DIR/MesloLGS NF Regular.ttf" ]; then
     print_success "MesloLGS Nerd Font installed"
 else
     print_success "MesloLGS Nerd Font already installed"
+fi
+
+if [ "$PROFILE" = "remote" ]; then
+    echo 'export DOTFILES_PROFILE=remote' > "$HOME/.zshenv"
+    print_success "Wrote DOTFILES_PROFILE=remote to ~/.zshenv"
 fi
 
 # Make zsh the default shell
