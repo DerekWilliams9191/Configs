@@ -263,3 +263,7 @@ if [[ "$DOTFILES_PROFILE" == "remote" ]]; then
     fi
   fi
 fi
+
+# Source machine-local overrides (not tracked in git)
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+

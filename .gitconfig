@@ -5,3 +5,5 @@
 	excludesfile = ~/.gitignore_global
 [pager]
   branch = false
+[include]
+  path = ~/gitconfig.local
