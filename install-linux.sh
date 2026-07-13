@@ -160,13 +160,13 @@ install_packages_dnf() {
     # fd from upstream GitHub release tarball (not in AL2023's default repos)
     if ! command -v fd &> /dev/null; then
         print_step "Installing fd from GitHub release..."
-        FD_VERSION=$(curl -s "https://api.github.com/repos/sharkdp/fd/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+        FD_URL=$(curl -s "https://api.github.com/repos/sharkdp/fd/releases/latest" | grep -Po '"browser_download_url": "\K[^"]*x86_64-unknown-linux-gnu\.tar\.gz')
         cd /tmp
-        curl -Lo fd.tar.gz "https://github.com/sharkdp/fd/releases/latest/download/fd-v${FD_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+        curl -Lo fd.tar.gz "$FD_URL"
         tar xf fd.tar.gz
         mkdir -p "$HOME/.local/bin"
-        mv fd-v${FD_VERSION}-x86_64-unknown-linux-gnu/fd "$HOME/.local/bin/fd"
-        rm -rf fd.tar.gz fd-v${FD_VERSION}-x86_64-unknown-linux-gnu
+        mv fd-v*-x86_64-unknown-linux-gnu/fd "$HOME/.local/bin/fd"
+        rm -rf fd.tar.gz fd-v*-x86_64-unknown-linux-gnu
     fi
 
     # Install eza
