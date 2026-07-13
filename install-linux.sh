@@ -122,7 +122,6 @@ install_packages_dnf() {
         zsh \
         bash \
         git \
-        curl \
         wget \
         tmux \
         vim \
