@@ -169,6 +169,25 @@ install_packages_dnf() {
         rm -rf fd.tar.gz fd-v*-x86_64-unknown-linux-gnu
     fi
 
+    # ripgrep from upstream GitHub release tarball (not in AL2023's default repos)
+    if ! command -v rg &> /dev/null; then
+        print_step "Installing ripgrep from GitHub release..."
+        RG_URL=$(curl -s "https://api.github.com/repos/BurntSushi/ripgrep/releases/latest" | grep -Po '"browser_download_url": "\K[^"]*x86_64-unknown-linux-musl\.tar\.gz(?=")')
+        cd /tmp
+        curl -Lo ripgrep.tar.gz "$RG_URL"
+        tar xf ripgrep.tar.gz
+        mkdir -p "$HOME/.local/bin"
+        mv ripgrep-*-x86_64-unknown-linux-musl/rg "$HOME/.local/bin/rg"
+        rm -rf ripgrep.tar.gz ripgrep-*-x86_64-unknown-linux-musl
+    fi
+
+    # tree-sitter CLI via npm (nvim-treesitter's main branch shells out to it to
+    # compile parsers); installed into the user prefix so no sudo is needed
+    if ! command -v tree-sitter &> /dev/null; then
+        print_step "Installing tree-sitter CLI via npm..."
+        npm install -g --prefix "$HOME/.local" tree-sitter-cli
+    fi
+
     # Install eza
     if ! command -v eza &> /dev/null; then
         print_step "Installing eza..."
