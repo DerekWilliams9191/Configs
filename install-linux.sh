@@ -388,7 +388,7 @@ fi
 
 # Install tmux plugins non-interactively
 print_step "Installing tmux plugins..."
-"$HOME/.tmux/plugins/tpm/bin/install_plugins"
+TERM=xterm-256color "$HOME/.tmux/plugins/tpm/bin/install_plugins" || print_warning "TMUX Plugin install skipped (run 'prefix + I' inside tmux later)"
 print_success "Tmux plugins installed"
 
 # Set up Powerlevel10k
