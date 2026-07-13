@@ -112,43 +112,83 @@ install_packages_apt() {
 }
 
 install_packages_dnf() {
+    # Amazon Linux 2023's default repos lack fzf, neovim, and powerline-fonts,
+    # so we install fzf/neovim from upstream and drop powerline-fonts (the
+    # MesloLGS Nerd Font installed later is what p10k uses).
     print_step "Installing packages via dnf..."
     sudo dnf update -y
 
     sudo dnf install -y \
         zsh \
         bash \
-        fzf \
         git \
         curl \
         wget \
         tmux \
         vim \
-        neovim \
         gcc \
         gcc-c++ \
         make \
-        powerline-fonts \
+        unzip \
+        tar \
         google-noto-emoji-color-fonts
-    
+
+    # fzf via official installer (not in AL2023's default repos)
+    if ! command -v fzf &> /dev/null; then
+        print_step "Installing fzf from git..."
+        if [ ! -d "$HOME/.fzf" ]; then
+            git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
+        fi
+        "$HOME/.fzf/install" --bin
+        # Symlink the binary into a directory on PATH for non-interactive shells
+        mkdir -p "$HOME/.local/bin"
+        ln -sf "$HOME/.fzf/bin/fzf" "$HOME/.local/bin/fzf"
+    fi
+
+    # neovim from upstream GitHub release tarball (not in AL2023's default repos)
+    if ! command -v nvim &> /dev/null; then
+        print_step "Installing neovim from GitHub release..."
+        cd /tmp
+        curl -Lo nvim.tar.gz "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+        tar xf nvim.tar.gz
+        mkdir -p "$HOME/.local"
+        cp -r nvim-linux-x86_64/* "$HOME/.local/"
+        rm -rf nvim.tar.gz nvim-linux-x86_64
+    fi
+
     # Install eza
     if ! command -v eza &> /dev/null; then
         print_step "Installing eza..."
-        sudo dnf install -y eza
+        sudo dnf install -y eza || {
+            print_warning "eza not in repos; installing from GitHub release..."
+            cd /tmp
+            curl -Lo eza.tar.gz "https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
+            tar xf eza.tar.gz
+            mkdir -p "$HOME/.local/bin"
+            mv eza "$HOME/.local/bin/eza"
+            rm -f eza.tar.gz
+        }
     fi
-    
+
     # Install zoxide
     if ! command -v zoxide &> /dev/null; then
         print_step "Installing zoxide..."
         curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
         export PATH="$HOME/.local/bin:$PATH"
     fi
-    
+
     # Install lazygit
     if ! command -v lazygit &> /dev/null; then
         print_step "Installing lazygit..."
-        sudo dnf copr enable atim/lazygit -y
-        sudo dnf install lazygit -y
+        { sudo dnf copr enable atim/lazygit -y && sudo dnf install lazygit -y; } || {
+            print_warning "lazygit copr unavailable; installing from GitHub release..."
+            LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+            cd /tmp
+            curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+            tar xf lazygit.tar.gz lazygit
+            sudo install lazygit /usr/local/bin
+            rm lazygit.tar.gz lazygit
+        }
     fi
 }
 
