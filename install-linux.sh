@@ -130,6 +130,8 @@ install_packages_dnf() {
         make \
         unzip \
         tar \
+        nodejs22 \
+        python3.12 \
         google-noto-emoji-color-fonts
 
     # fzf via official installer (not in AL2023's default repos)
@@ -153,6 +155,18 @@ install_packages_dnf() {
         mkdir -p "$HOME/.local"
         cp -r nvim-linux-x86_64/* "$HOME/.local/"
         rm -rf nvim.tar.gz nvim-linux-x86_64
+    fi
+
+    # fd from upstream GitHub release tarball (not in AL2023's default repos)
+    if ! command -v fd &> /dev/null; then
+        print_step "Installing fd from GitHub release..."
+        FD_VERSION=$(curl -s "https://api.github.com/repos/sharkdp/fd/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+        cd /tmp
+        curl -Lo fd.tar.gz "https://github.com/sharkdp/fd/releases/latest/download/fd-v${FD_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+        tar xf fd.tar.gz
+        mkdir -p "$HOME/.local/bin"
+        mv fd-v${FD_VERSION}-x86_64-unknown-linux-gnu/fd "$HOME/.local/bin/fd"
+        rm -rf fd.tar.gz fd-v${FD_VERSION}-x86_64-unknown-linux-gnu
     fi
 
     # Install eza
