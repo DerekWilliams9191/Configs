@@ -183,14 +183,14 @@ install_packages_dnf() {
         rm -rf ripgrep.tar.gz ripgrep-*-x86_64-unknown-linux-musl
     fi
 
-    # tree-sitter CLI built from source (nvim-treesitter's main branch shells
-    # out to it to compile parsers). The npm binary is glibc-incompatible on
-    # AL2023, so build with cargo instead. BINDGEN_EXTRA_CLANG_ARGS points
-    # bindgen at clang's builtin headers (clang-libs alone doesn't expose them);
-    # the glob resolves the versioned directory, e.g. /usr/lib64/clang/18/include.
+    # tree-sitter CLI must be built locally because AL2023's glibc is too old
+    # for the prebuilt 0.26.x binaries. QuickJS bindgen also needs clang's
+    # builtin headers explicitly.
     if ! command -v tree-sitter &> /dev/null; then
-        print_step "Installing tree-sitter CLI via cargo..."
-        BINDGEN_EXTRA_CLANG_ARGS="-I$(echo /usr/lib64/clang/*/include)" \
+        print_step "Building tree-sitter CLI with cargo..."
+        clang_include="$(find /usr/lib64/clang -mindepth 2 -maxdepth 2 \
+            -type d -name include -print | sort -V | tail -n 1)"
+        BINDGEN_EXTRA_CLANG_ARGS="-I$clang_include" \
             cargo install --locked tree-sitter-cli --root "$HOME/.local"
     fi
 
