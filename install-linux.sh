@@ -132,6 +132,8 @@ install_packages_dnf() {
         tar \
         nodejs22 \
         python3.12 \
+        cargo \
+        clang-libs \
         google-noto-emoji-color-fonts
 
     # fzf via official installer (not in AL2023's default repos)
@@ -181,11 +183,15 @@ install_packages_dnf() {
         rm -rf ripgrep.tar.gz ripgrep-*-x86_64-unknown-linux-musl
     fi
 
-    # tree-sitter CLI via npm (nvim-treesitter's main branch shells out to it to
-    # compile parsers); installed into the user prefix so no sudo is needed
+    # tree-sitter CLI built from source (nvim-treesitter's main branch shells
+    # out to it to compile parsers). The npm binary is glibc-incompatible on
+    # AL2023, so build with cargo instead. BINDGEN_EXTRA_CLANG_ARGS points
+    # bindgen at clang's builtin headers (clang-libs alone doesn't expose them);
+    # the glob resolves the versioned directory, e.g. /usr/lib64/clang/18/include.
     if ! command -v tree-sitter &> /dev/null; then
-        print_step "Installing tree-sitter CLI via npm..."
-        npm install -g --prefix "$HOME/.local" tree-sitter-cli
+        print_step "Installing tree-sitter CLI via cargo..."
+        BINDGEN_EXTRA_CLANG_ARGS="-I$(echo /usr/lib64/clang/*/include)" \
+            cargo install --locked tree-sitter-cli --root "$HOME/.local"
     fi
 
     # Install eza
@@ -265,7 +271,9 @@ install_packages_yum() {
         gcc-c++ \
         make \
         unzip \
-        tar
+        tar \
+        ruby \
+        rubygems
 
     # fzf via official installer (no yum package)
     if ! command -v fzf &> /dev/null; then

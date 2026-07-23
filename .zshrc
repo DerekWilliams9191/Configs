@@ -245,21 +245,24 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # opencode
 export PATH="$HOME/.opencode/bin:$PATH"
 
-# Remote-only: auto-attach to last session if it exists and is not in use.
-if [[ "$DOTFILES_PROFILE" == "remote" ]]; then
-  # Gaurd against joining if already in tmux session
-  if [[ -z "$TMUX" ]] && [[ $- == *i* ]] && command -v tmux >/dev/null 2>&1; then
-    last_session="$(cat "$HOME/.tmux-last-session" 2>/dev/null)"
-    if [[ -z "$last_session" ]]; then
-      # No saved session — start tmux fresh
-      tmux
-    else
-      # "" = no such session, "0" = free, "1"+ = in use
-      session_attached=$(tmux list-sessions -F '#{session_name} #{session_attached}' 2>/dev/null \
-        | awk -v s="$last_session" '$1 == s {print $2}')
-      if [[ "$session_attached" == "0" ]]; then
-        tmux attach -t "$last_session"
-      fi
+# Report logical $PWD to tmux via OSC 7 on every cd so new windows/splits
+# open in the path as typed (symlinks preserved) instead of the resolved one.
+if [[ -n "$TMUX" ]]; then
+  _osc7_cwd() { printf '\033]7;file://%s%s\033\\' "$HOST" "$PWD" }
+  autoload -Uz add-zsh-hook
+  add-zsh-hook chpwd _osc7_cwd
+  _osc7_cwd
+fi
+
+# Remote-only: per-connection tmux re-attach. Terminals pass a unique
+# SSH_CONN_ID; tmux hooks maintain ~/.tmux-conn-map (SSH_CONN_ID<TAB>session).
+# No SSH_CONN_ID, no map entry, or session gone = do nothing.
+if [[ "$DOTFILES_PROFILE" == "remote" ]] && [[ -n "$SSH_CONN_ID" ]]; then
+  # -t 0: skip TTY-less shells (scp, IDE/agent-spawned) where attach would fail
+  if [[ -z "$TMUX" ]] && [[ $- == *i* ]] && [[ -t 0 ]] && command -v tmux >/dev/null 2>&1; then
+    mapped_session="$(awk -F '\t' -v id="$SSH_CONN_ID" '$1 == id {print $2}' "$HOME/.tmux-conn-map" 2>/dev/null | tail -n 1)"
+    if [[ -n "$mapped_session" ]] && tmux has-session -t "=$mapped_session" 2>/dev/null; then
+      tmux attach -t "=$mapped_session"
     fi
   fi
 fi
