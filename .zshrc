@@ -164,6 +164,29 @@ JSON
 }
 
 
+# tmux attach. Bare `tat` attaches to the last session (or creates one);
+# `tat <TAB>` lists sessions through fzf-tab, with a window list preview.
+function tat() {
+  if [[ -z "$1" ]]; then
+    tmux attach 2>/dev/null || tmux new-session
+  else
+    tmux attach -t "=$1"
+  fi
+}
+
+_tat() {
+  local -a sessions
+  local line
+  # tmux ls lines look like: "name: 2 windows (created ...) (attached)"
+  for line in ${(f)"$(tmux list-sessions 2>/dev/null)"}; do
+    sessions+=( "${line%%:*}:${line#*: }" )
+  done
+  _describe -t tmux-sessions 'tmux session' sessions
+}
+compdef _tat tat
+
+zstyle ':fzf-tab:complete:tat:*' fzf-preview 'tmux list-windows -t "=$word" 2>/dev/null'
+
 # ------------------------------------------------------------------------
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
