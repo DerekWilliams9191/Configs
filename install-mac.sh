@@ -232,6 +232,12 @@ if [ "$PROFILE" = "remote" ]; then
     print_success "Wrote DOTFILES_PROFILE=remote to ~/.zshenv"
 fi
 
+if [ "$PROFILE" = "local" ]; then
+    print_step "Installing agent notifications..."
+    "$SCRIPT_DIR/install-agent-notify-macos.sh"
+    print_success "Agent notifications installed"
+fi
+
 # Make zsh the default shell
 if [ "$SHELL" != "$(which zsh)" ]; then
     print_step "Setting zsh as default shell..."
@@ -255,19 +261,14 @@ echo "1. Restart your terminal or run: source ~/.zshrc"
 echo "2. If iTerm2 preferences weren't found, configure iTerm2 and export preferences to:"
 echo "   $SCRIPT_DIR/iterm2/com.googlecode.iterm2.plist"
 echo "3. If you don't have a Powerlevel10k config, run: p10k configure"
+
 echo
 echo -e "${YELLOW}Ghostty over SSH${NC}"
 echo "If you SSH from Ghostty into a host that doesn't know xterm-ghostty,"
 echo "you'll see: 'xterm-ghostty': unknown terminal type."
 echo
-echo "Two ways to fix it:"
-echo
 echo "  [Local — Ghostty machine] Push Ghostty's terminfo to the remote (run ONCE per host):"
 echo "      infocmp -x ghostty | ssh user@host -- tic -x -"
-echo
-echo "  [Local — fallback] The ssh() wrapper in .zshrc auto-downgrades TERM"
-echo "      to xterm-256color when SSHing from Ghostty. Already enabled,"
-echo "      no action needed. Use 'command ssh' to bypass it."
 echo
 echo "  [Remote] If you can't run the local command above (e.g. you don't have"
 echo "  Ghostty installed locally), have someone with Ghostty send you the"

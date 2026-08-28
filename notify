@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+notify_host="${AGENT_NOTIFY_HOST:-127.0.0.1}"
+notify_port="${AGENT_NOTIFY_PORT:-45891}"
+
+if (( $# == 0 )); then
+  echo "Usage: notify MESSAGE" >&2
+  exit 2
+fi
+
+title="$*"
+if (( ${#title} > 512 )); then
+  echo "notify: message must be 512 characters or fewer" >&2
+  exit 2
+fi
+if [[ ! "$notify_port" =~ ^[0-9]+$ ]]; then
+  echo "notify: invalid notification port: $notify_port" >&2
+  exit 2
+fi
+
+request="$(
+  jq -nc \
+    --arg action "notify" \
+    --arg title "$title" \
+    '{action: $action, title: $title}'
+)"
+
+if ! timeout 1 bash -c \
+  'printf "%s\n" "$1" >"/dev/tcp/$2/$3"' \
+  notify "$request" "$notify_host" "$notify_port" 2>/dev/null; then
+  echo "notify: notification listener is unavailable" >&2
+  exit 1
+fi

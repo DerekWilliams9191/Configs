@@ -1,12 +1,25 @@
+# local | remote — remote installer sets DOTFILES_PROFILE=remote in ~/.zshenv
+DOTFILES_PROFILE="${DOTFILES_PROFILE:-local}"
+
+# Remote-only: per-connection tmux re-attach. Terminals pass a unique
+# SSH_CONN_ID; tmux hooks maintain ~/.tmux-conn-map (SSH_CONN_ID<TAB>session).
+# No SSH_CONN_ID, no map entry, or session gone = do nothing.
+if [[ "$DOTFILES_PROFILE" == "remote" ]] && [[ -n "$SSH_CONN_ID" ]]; then
+  # -t 0: skip TTY-less shells (scp, IDE/agent-spawned) where attach would fail
+  if [[ -z "$TMUX" ]] && [[ $- == *i* ]] && [[ -t 0 ]] && command -v tmux >/dev/null 2>&1; then
+    mapped_session="$(awk -F '\t' -v id="$SSH_CONN_ID" '$1 == id {print $2}' "$HOME/.tmux-conn-map" 2>/dev/null | tail -n 1)"
+    if [[ -n "$mapped_session" ]] && tmux has-session -t "=$mapped_session" 2>/dev/null; then
+      tmux attach -t "=$mapped_session"
+    fi
+  fi
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
-
-# local | remote — remote installer sets DOTFILES_PROFILE=remote in ~/.zshenv
-DOTFILES_PROFILE="${DOTFILES_PROFILE:-local}"
 
 # OS-specific paths
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -114,17 +127,6 @@ function cl() {
   fi
 }
 
-# Downgrade TERM when SSHing from Ghostty so remote hosts without ghostty
-# terminfo don't error with "xterm-ghostty: unknown terminal type". Push
-# proper terminfo with: infocmp -x ghostty | ssh user@host -- tic -x -
-ssh() {
-  if [[ "$TERM" == "xterm-ghostty" ]]; then
-    TERM=xterm-256color command ssh "$@"
-  else
-    command ssh "$@"
-  fi
-}
-
 alias gs='git status'
 alias ga='git add'
 alias gc='git commit'
@@ -137,14 +139,6 @@ function sc() {
   tmp_settings="$(mktemp)"
 
   trap 'rm -f "$tmp_settings"' EXIT
-
-  rm -rf ~/.claude/projects \
-         ~/.claude/file-history \
-         ~/.claude/plans \
-         ~/.claude/paste-cache \
-         ~/.claude/image-cache
-
-  rm -f ~/.claude/history.jsonl
 
   cat > "$tmp_settings" <<'JSON'
 {
@@ -252,19 +246,6 @@ if [[ -n "$TMUX" ]]; then
   autoload -Uz add-zsh-hook
   add-zsh-hook chpwd _osc7_cwd
   _osc7_cwd
-fi
-
-# Remote-only: per-connection tmux re-attach. Terminals pass a unique
-# SSH_CONN_ID; tmux hooks maintain ~/.tmux-conn-map (SSH_CONN_ID<TAB>session).
-# No SSH_CONN_ID, no map entry, or session gone = do nothing.
-if [[ "$DOTFILES_PROFILE" == "remote" ]] && [[ -n "$SSH_CONN_ID" ]]; then
-  # -t 0: skip TTY-less shells (scp, IDE/agent-spawned) where attach would fail
-  if [[ -z "$TMUX" ]] && [[ $- == *i* ]] && [[ -t 0 ]] && command -v tmux >/dev/null 2>&1; then
-    mapped_session="$(awk -F '\t' -v id="$SSH_CONN_ID" '$1 == id {print $2}' "$HOME/.tmux-conn-map" 2>/dev/null | tail -n 1)"
-    if [[ -n "$mapped_session" ]] && tmux has-session -t "=$mapped_session" 2>/dev/null; then
-      tmux attach -t "=$mapped_session"
-    fi
-  fi
 fi
 
 # Source machine-local overrides (not tracked in git)

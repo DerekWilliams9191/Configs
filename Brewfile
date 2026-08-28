@@ -3,6 +3,7 @@ brew "eza"              # Better ls
 brew "zoxide"           # Better cd
 brew "lazygit"          # Git TUI
 brew "tmux"             # Terminal multiplexer
+brew "terminal-notifier"
 
 # Zsh enhancements
 brew "zsh-autosuggestions"

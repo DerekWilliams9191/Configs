@@ -3,7 +3,7 @@
 # triggering client's SSH_CONN_ID from the session environment (populated by
 # update-environment on each attach/switch) and upserts
 # SSH_CONN_ID<TAB>session in ~/.tmux-conn-map for remote-profile auto-reattach.
-session="$(tmux display-message -p '#S')"
+session="$1"
 [ -n "$session" ] || exit 0
 
 line="$(tmux show-environment -t "=$session" SSH_CONN_ID 2>/dev/null)" || exit 0

@@ -450,6 +450,7 @@ if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
 fi
 
 if [ "$PROFILE" = "remote" ]; then
+    create_symlink "$SCRIPT_DIR/notify" "$HOME/.local/bin/notify"
     echo 'export DOTFILES_PROFILE=remote' > "$HOME/.zshenv"
     print_success "Wrote DOTFILES_PROFILE=remote to ~/.zshenv"
 fi
