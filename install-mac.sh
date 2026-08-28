@@ -152,10 +152,7 @@ print_step "Creating configuration symlinks..."
 create_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
 create_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
 
-# Only link .gitignore_global if it exists
-if [ -f "$SCRIPT_DIR/.gitignore_global" ]; then
-    create_symlink "$SCRIPT_DIR/.gitignore_global" "$HOME/.gitignore_global"
-fi
+"$SCRIPT_DIR/generate-gitignore.sh"
 
 create_symlink "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
 

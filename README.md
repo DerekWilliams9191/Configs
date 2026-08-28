@@ -69,6 +69,14 @@ This repository contains my personal dotfiles and configurations for macOS and L
 - Global gitignore for common files
 - Configured editor and basic settings
 
+The install scripts generate `~/.gitignore_global.combined` from the tracked
+`.gitignore_global` and append `~/.gitignore_global.local` when that file
+exists. Run the generator by itself after either input changes:
+
+```bash
+./generate-gitignore.sh
+```
+
 ## Linux Support
 
 The `install-linux.sh` script supports:

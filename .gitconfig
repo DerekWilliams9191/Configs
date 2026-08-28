@@ -2,7 +2,7 @@
     name = Derek W
     email = 157203047+DerekWilliams9191@users.noreply.github.com
 [core]
-	excludesfile = ~/.gitignore_global
+	excludesfile = ~/.gitignore_global.combined
 [pager]
   branch = false
 [include]
