@@ -7,9 +7,52 @@ import subprocess
 import sys
 import time
 
-
 MAX_REQUEST_SIZE = 8192
 CLEAR_RETRY_DELAYS = (0.0, 0.2, 0.8)
+GHOSTTY_TAB_INDEX_SCRIPT = r"""
+on run argv
+    set sessionName to item 1 of argv
+    if application "Ghostty" is not running then return ""
+
+    tell application "Ghostty"
+        repeat with ghosttyWindow in windows
+            set tabCount to count tabs of ghosttyWindow
+            repeat with ghosttyTab in tabs of ghosttyWindow
+                if name of ghosttyTab is sessionName then
+                    set tabIndex to index of ghosttyTab
+                    if tabIndex < 9 then return tabIndex as text
+                    if tabIndex is tabCount then return "9"
+                    return ""
+                end if
+            end repeat
+        end repeat
+    end tell
+    return ""
+end run
+"""
+
+
+def notification_title(title: str) -> str:
+    session, separator, _ = title.partition(" - ")
+    if not separator or not session:
+        return title
+
+    try:
+        result = subprocess.run(
+            ["osascript", "-e", GHOSTTY_TAB_INDEX_SCRIPT, session],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=1,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return title
+
+    tab_index = result.stdout.strip()
+    if tab_index not in {str(index) for index in range(1, 10)}:
+        return title
+    return f"\u2318{tab_index} {title}"
 
 
 def notification_command(notifier: str, request: dict) -> list[str]:
@@ -21,7 +64,7 @@ def notification_command(notifier: str, request: dict) -> list[str]:
         return [
             notifier,
             "-title",
-            title,
+            notification_title(title),
             "-message",
             "",
             "-sound",
@@ -36,15 +79,12 @@ def notification_command(notifier: str, request: dict) -> list[str]:
         title = request.get("title")
         if not isinstance(title, str) or not title or len(title) > 512:
             raise ValueError("invalid notification title")
-        message = request.get("message", "")
-        if not isinstance(message, str) or len(message) > 512:
-            raise ValueError("invalid notification message")
         return [
             notifier,
             "-title",
-            title,
+            notification_title(title),
             "-message",
-            message,
+            "",
             "-group",
             group,
             "-sound",

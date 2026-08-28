@@ -4,11 +4,27 @@ set -e  # Exit on any error
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Profile: --local or --remote. Required.
-case "$1" in
-    --local)  PROFILE="local" ;;
-    --remote) PROFILE="remote" ;;
-    *)        echo "Usage: $0 --local|--remote"; exit 1 ;;
+# Profile: --local HOST or --remote. Required.
+case "${1:-}" in
+    --local)
+        if [ "$#" -ne 2 ]; then
+            echo "Usage: $0 --local HOST"
+            exit 1
+        fi
+        PROFILE="local"
+        NOTIFY_HOST="$2"
+        ;;
+    --remote)
+        if [ "$#" -ne 1 ]; then
+            echo "Usage: $0 --remote"
+            exit 1
+        fi
+        PROFILE="remote"
+        ;;
+    *)
+        echo "Usage: $0 --local HOST | --remote"
+        exit 1
+        ;;
 esac
 
 # Colors for output
@@ -233,9 +249,8 @@ if [ "$PROFILE" = "remote" ]; then
 fi
 
 if [ "$PROFILE" = "local" ]; then
-    print_step "Installing agent notifications..."
-    "$SCRIPT_DIR/install-agent-notify-macos.sh"
-    print_success "Agent notifications installed"
+    "$SCRIPT_DIR/agent-notifier/install.sh" "$NOTIFY_HOST"
+    print_success "Agent notifications enabled"
 fi
 
 # Make zsh the default shell

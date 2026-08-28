@@ -19,14 +19,22 @@ remote_port_in_use() {
 
 trap 'exit 130' INT TERM
 
+first_attempt=1
+
 while true; do
-  if remote_port_in_use; then
-    echo "Notification tunnel for $host is already running." >&2
-    exit 0
+  if (( first_attempt )); then
+    first_attempt=0
+    if remote_port_in_use; then
+      echo "Notification tunnel for $host is already running." >&2
+      exit 0
+    fi
   fi
 
-  ssh -N -T \
+  AGENT_NOTIFY_TUNNEL_HOST="$host" ssh -N -T \
+    -o ConnectTimeout=10 \
     -o ExitOnForwardFailure=yes \
+    -o PermitLocalCommand=yes \
+    -o 'LocalCommand=echo "Notification tunnel for $AGENT_NOTIFY_TUNNEL_HOST connected."' \
     -o ServerAliveInterval=30 \
     -o ServerAliveCountMax=3 \
     -R "127.0.0.1:$port:127.0.0.1:$port" \
