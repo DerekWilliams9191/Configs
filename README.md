@@ -15,7 +15,7 @@ This repository contains my personal dotfiles and configurations for macOS and L
    **macOS:**
    ```bash
    cd ~/.config/Configs
-   ./install-mac.sh
+   ./install-mac.sh --local HOST
    ```
 
    **Linux:**

@@ -7,11 +7,7 @@
 keybind = cmd+enter=unbind
 
 # DISABLE THE STUPID FUCKING BELL
-bell-features = no-audio
-bell-features = no-attention
-bell-features = no-title
-bell-features = no-border
-bell-features =
+bell-features = false
 
 # Let tmux handle mouse selections
 clipboard-read = allow
