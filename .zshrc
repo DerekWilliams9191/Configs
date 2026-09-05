@@ -256,3 +256,8 @@ fi
 
 export AWS_EC2_METADATA_DISABLED=true
 
+# Load Ghostty shell integration when automatic injection is unavailable.
+if [[ -n ${GHOSTTY_RESOURCES_DIR:-} ]] &&
+   (( ! ${+_ghostty_state} )); then
+  source "$GHOSTTY_RESOURCES_DIR/shell-integration/zsh/ghostty-integration"
+fi
