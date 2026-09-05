@@ -10,6 +10,7 @@ hook_input=""
 hook_event_name=""
 hook_notification_type=""
 hook_tool_name=""
+hook_error=""
 
 if [[ ! -t 0 ]]; then
   hook_input="$(cat)"
@@ -21,6 +22,9 @@ if [[ ! -t 0 ]]; then
   )"
   hook_tool_name="$(
     jq -r '.tool_name // empty' <<<"$hook_input" 2>/dev/null || true
+  )"
+  hook_error="$(
+    jq -r '.error // empty' <<<"$hook_input" 2>/dev/null || true
   )"
 fi
 
@@ -116,6 +120,87 @@ notification_message() {
   esac
 }
 
+is_rate_limit_failure() {
+  [[ "$hook_event_name" == "StopFailure" ]] || return 1
+  [[ "$hook_error" == "rate_limit" ]]
+}
+
+pane_has_rate_limit() {
+  local pane="$1"
+  local pane_text
+
+  # capture-pane always pads to the pane height, so strip the blank filler
+  # before taking the tail. A short session draws at the top of the pane.
+  pane_text="$(
+    "$tmux_bin" capture-pane -p -J -t "$pane" 2>/dev/null |
+      sed '/^[[:space:]]*$/d' |
+      tail -n 30
+  )" || return 1
+
+  [[ "$pane_text" == *"API Error: Request rejected (429)"* ]]
+}
+
+pane_is_ready_for_input() {
+  local pane="$1"
+  local cursor_y
+  local cursor_line
+
+  cursor_y="$(
+    "$tmux_bin" display-message -p -t "$pane" '#{cursor_y}' 2>/dev/null
+  )" || return 1
+  [[ "$cursor_y" =~ ^[0-9]+$ ]] || return 1
+
+  cursor_line="$(
+    "$tmux_bin" capture-pane -p -J -t "$pane" 2>/dev/null |
+      sed -n "$((cursor_y + 1))p"
+  )" || return 1
+
+  [[ "$cursor_line" == "❯"* ]]
+}
+
+wait_for_process_exit() {
+  local process_id="$1"
+  local attempts=0
+
+  [[ "$process_id" =~ ^[0-9]+$ ]] || return 1
+
+  while kill -0 "$process_id" 2>/dev/null; do
+    (( attempts < 100 )) || return 1
+    sleep 0.05
+    ((attempts += 1))
+  done
+}
+
+continue_rate_limited_pane() {
+  local pane="$1"
+  local hook_process_id="$2"
+  local attempts=0
+
+  [[ -n "$pane" ]] || return 0
+  wait_for_process_exit "$hook_process_id" || return 0
+
+  while (( attempts < 100 )); do
+    if pane_has_rate_limit "$pane" && pane_is_ready_for_input "$pane"; then
+      "$tmux_bin" send-keys -l -t "$pane" "Continue." 2>/dev/null ||
+        return 0
+      "$tmux_bin" send-keys -t "$pane" Enter 2>/dev/null || true
+      return 0
+    fi
+
+    sleep 0.05
+    ((attempts += 1))
+  done
+}
+
+queue_rate_limit_continue() {
+  [[ -n "${TMUX:-}" && -n "${TMUX_PANE:-}" ]] || return 1
+  is_rate_limit_failure || return 1
+
+  nohup "$script_dir/agent-notify.sh" \
+    continue-rate-limit "$TMUX_PANE" "$$" \
+    </dev/null >/dev/null 2>&1 &
+}
+
 show_notification() {
   [[ -n "${TMUX:-}" && -n "${TMUX_PANE:-}" ]] || return 0
 
@@ -201,7 +286,11 @@ clear_notification() {
 }
 
 case "$action" in
-  show) show_notification ;;
+  show)
+    queue_rate_limit_continue && exit 0
+    show_notification
+    ;;
+  continue-rate-limit) continue_rate_limited_pane "${2:-}" "${3:-}" ;;
   clear) clear_notification "${2:-}" ;;
   *) exit 2 ;;
 esac

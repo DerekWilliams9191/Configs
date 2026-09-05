@@ -8,6 +8,7 @@ return {
       -- ensure these language parsers are installed
       require("nvim-treesitter").install({
         "json",
+        "java",
         "javascript",
         "typescript",
         "tsx",

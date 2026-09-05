@@ -1,7 +1,97 @@
+local function setup_explorer_refresh()
+	local pending = false
+
+	local function refresh_explorers()
+		if pending or not package.loaded["snacks"] then
+			return
+		end
+
+		pending = true
+		vim.defer_fn(function()
+			pending = false
+
+			local snacks = package.loaded["snacks"]
+			if not snacks then
+				return
+			end
+
+			local refresh = require("snacks.explorer.actions").actions.explorer_update
+			for _, picker in ipairs(snacks.picker.get({ source = "explorer", tab = false })) do
+				refresh(picker)
+			end
+		end, 100)
+	end
+
+	local group = vim.api.nvim_create_augroup("snacks_explorer_refresh", { clear = true })
+
+	vim.api.nvim_create_autocmd({ "BufFilePost", "FocusGained", "ShellCmdPost", "TermClose" }, {
+		group = group,
+		callback = refresh_explorers,
+	})
+
+	vim.api.nvim_create_autocmd("User", {
+		group = group,
+		pattern = "GitSignsChanged",
+		callback = refresh_explorers,
+	})
+
+	vim.api.nvim_create_autocmd("WinEnter", {
+		group = group,
+		callback = function()
+			local snacks = package.loaded["snacks"]
+			if not snacks then
+				return
+			end
+
+			local win = vim.api.nvim_get_current_win()
+			for _, picker in ipairs(snacks.picker.get({ source = "explorer", tab = false })) do
+				if picker.list.win.win == win then
+					refresh_explorers()
+					return
+				end
+			end
+		end,
+	})
+end
+
+local function explorer_format(item, picker)
+	local ret = require("snacks.picker.format").file(item, picker)
+	if not item.status then
+		return ret
+	end
+
+	local status = require("snacks.picker.source.git").git_status(item.status)
+	if status.unmerged or status.status == "ignored" then
+		return ret
+	end
+
+	local letter = status.status == "untracked" and "U" or status.status:sub(1, 1):upper()
+	local mixed = item.status:match("^[MADRCT][MADRCT]$") ~= nil
+
+	for _, part in ipairs(ret) do
+		local git_status_icon = part.virt_text
+			and part.virt_text[1]
+			and type(part.virt_text[1][2]) == "string"
+			and part.virt_text[1][2]:match("^SnacksPickerGitStatus")
+
+		if git_status_icon then
+			part.virt_text[1][1] = letter
+			if mixed then
+				part.virt_text[1][2] = "SnacksPickerGitStatusMixed"
+			end
+		elseif mixed and type(part[2]) == "string" and part[2]:match("^SnacksPickerGitStatus") then
+			part[2] = "SnacksPickerGitStatusMixed"
+		end
+	end
+
+	return ret
+end
+
 return {
 	"folke/snacks.nvim",
 	priority = 1000,
 	lazy = false,
+	init = setup_explorer_refresh,
 	dependencies = {
 		-- Useful for getting pretty icons, but requires a Nerd Font.
 		{ "nvim-tree/nvim-web-devicons" },
@@ -41,6 +131,7 @@ return {
 					auto_close = false,
 					hidden = true,
 					ignored = true,
+					format = explorer_format,
 					exclude = {
 						".DS_Store",
 						"*~",

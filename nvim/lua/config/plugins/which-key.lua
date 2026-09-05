@@ -10,8 +10,8 @@ return {
     local wk = require("which-key")
     wk.setup(opts)
     wk.add({
-      { "<leader>j", group = "Jump (LSP)" },
+      { "<leader>b", group = "Debug" },
+      { "<leader>j", group = "Java / LSP" },
     })
   end,
 }
-

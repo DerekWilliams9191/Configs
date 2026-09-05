@@ -13,6 +13,11 @@ return {
     local fg_dark = "#B4D0E9"
     local fg_gutter = "#627E97"
     local border = "#547998"
+    local comment = "#E01D6F"
+    local hidden = "#7A88B8"
+    local ignored = "#7DCFFF"
+    local untracked = "#FF5C57"
+    local git_mixed = "#D2691E"
 
     require("tokyonight").setup({
       style = "night",
@@ -32,15 +37,22 @@ return {
         colors.bg_statusline = transparent and colors.none or bg_dark
         colors.bg_visual = bg_visual
         colors.border = border
+        colors.comment = comment
         colors.fg = fg
         colors.fg_dark = fg_dark
         colors.fg_float = fg
         colors.fg_gutter = fg_gutter
         colors.fg_sidebar = fg_dark
       end,
+      on_highlights = function(highlights)
+        highlights.SnacksPickerPathHidden = { fg = hidden }
+        highlights.SnacksPickerPathIgnored = { fg = ignored }
+        highlights.SnacksPickerGitStatusUntracked = { fg = untracked }
+        highlights.SnacksPickerGitStatusIgnored = { fg = ignored }
+        highlights.SnacksPickerGitStatusMixed = { fg = git_mixed }
+      end,
     })
 
     vim.cmd("colorscheme tokyonight")
   end,
 }
-
