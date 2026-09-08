@@ -1802,6 +1802,10 @@
   #               typed after changing current working directory.
   typeset -g POWERLEVEL9K_TRANSIENT_PROMPT=off
 
+  # Emit OSC 133 prompt marks so terminals (Ghostty, iTerm2) can erase and
+  # redraw the prompt on resize instead of reflowing stale copies.
+  typeset -g POWERLEVEL9K_TERM_SHELL_INTEGRATION=true
+
   # Instant prompt mode.
   #
   #   - off:     Disable instant prompt. Choose this if you've tried instant prompt and found
