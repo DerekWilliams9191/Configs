@@ -119,8 +119,10 @@ BREW_CASKS=(
 )
 
 for cask in "${BREW_CASKS[@]}"; do
-    if brew list --cask | grep -q "^${cask}$"; then
+    if brew list --cask "$cask" &> /dev/null; then
         print_success "$cask already installed"
+    elif [ "$cask" = "iterm2" ] && [ -d "/Applications/iTerm.app" ]; then
+        print_success "$cask already installed outside Homebrew"
     else
         print_step "Installing $cask..."
         brew install --cask "$cask"
