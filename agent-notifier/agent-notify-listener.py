@@ -57,20 +57,6 @@ def notification_title(title: str) -> str:
 
 def notification_command(notifier: str, request: dict) -> list[str]:
     action = request.get("action")
-    if action == "notify":
-        title = request.get("title")
-        if not isinstance(title, str) or not title or len(title) > 512:
-            raise ValueError("invalid notification title")
-        return [
-            notifier,
-            "-title",
-            notification_title(title),
-            "-message",
-            "",
-            "-sound",
-            "default",
-        ]
-
     group = request.get("group")
     if not isinstance(group, str) or not group or len(group) > 512:
         raise ValueError("invalid notification group")
@@ -129,8 +115,9 @@ def process_request(
 
 class NotificationHandler(socketserver.StreamRequestHandler):
     def handle(self) -> None:
-        line = self.rfile.readline(MAX_REQUEST_SIZE + 2)
+        success = False
         try:
+            line = self.rfile.readline(MAX_REQUEST_SIZE + 2)
             if len(line) > MAX_REQUEST_SIZE + 1:
                 raise ValueError("notification request is too large")
             request = json.loads(line)
@@ -141,6 +128,7 @@ class NotificationHandler(socketserver.StreamRequestHandler):
                 request,
                 self.server.clear_retry_delays,
             )
+            success = True
         except (
             json.JSONDecodeError,
             OSError,
@@ -149,6 +137,15 @@ class NotificationHandler(socketserver.StreamRequestHandler):
             ValueError,
         ) as error:
             print(f"agent-notify: {error}", file=sys.stderr, flush=True)
+        try:
+            response = json.dumps(
+                {"ok": success},
+                separators=(",", ":"),
+            ).encode()
+            self.wfile.write(response + b"\n")
+            self.wfile.flush()
+        except OSError:
+            pass
 
 
 class NotificationServer(socketserver.ThreadingTCPServer):

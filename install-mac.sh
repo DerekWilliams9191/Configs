@@ -221,6 +221,10 @@ if [ -f "$SCRIPT_DIR/.p10k-gruvbox.zsh" ]; then
     create_symlink "$SCRIPT_DIR/.p10k-gruvbox.zsh" "$HOME/.p10k-gruvbox.zsh"
 fi
 
+# CloseCode agent notifier plugin
+mkdir -p "$HOME/.config/closecode/plugins"
+create_symlink "$SCRIPT_DIR/agent-notifier/closecode-notifier.js" "$HOME/.config/closecode/plugins/closecode-notifier.js"
+
 # Install MesloLGS Nerd Font (same as Linux script for consistency)
 print_step "Installing MesloLGS Nerd Font..."
 FONT_DIR="$HOME/Library/Fonts"

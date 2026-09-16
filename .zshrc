@@ -248,10 +248,9 @@ if [[ -n "$TMUX" ]]; then
   _osc7_cwd
 fi
 
+cap() { tee capture.tmp; }
+alias -g CAP='|& cap'
+
 # Source machine-local overrides (not tracked in git)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
-
-# if you wish to use IMDS set AWS_EC2_METADATA_DISABLED=false
-
-export AWS_EC2_METADATA_DISABLED=true

@@ -448,6 +448,8 @@ fi
 
 if [ "$PROFILE" = "remote" ]; then
     create_symlink "$SCRIPT_DIR/agent-notifier/notify" "$HOME/.local/bin/notify"
+    mkdir -p "$HOME/.config/closecode/plugins"
+    create_symlink "$SCRIPT_DIR/agent-notifier/closecode-notifier.js" "$HOME/.config/closecode/plugins/closecode-notifier.js"
     echo 'export DOTFILES_PROFILE=remote' > "$HOME/.zshenv"
     print_success "Wrote DOTFILES_PROFILE=remote to ~/.zshenv"
 fi
