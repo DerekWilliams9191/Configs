@@ -36,6 +36,7 @@ This repository contains my personal dotfiles and configurations for macOS and L
 - **Git configuration** with global gitignore
 - **Ghostty configuration** (macOS)
 - **iTerm2 preferences** (macOS only)
+- **ssh-r**: ssh that reconnects automatically and keeps port forwards (macOS, `--local` only)
 - **Package management** via Homebrew (macOS) or native package managers (Linux)
 
 ## Manual Steps After Installation

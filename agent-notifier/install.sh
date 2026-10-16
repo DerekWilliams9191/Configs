@@ -6,6 +6,11 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
     exit 1
 fi
 
+if (( EUID == 0 )); then
+    echo "Do not run this installer as root or with sudo." >&2
+    exit 1
+fi
+
 if [[ $# -ne 1 || -z "$1" || "$1" == -* || "$1" =~ [[:space:]] ]]; then
     echo "Usage: $(basename "$0") HOST" >&2
     exit 2
@@ -55,11 +60,35 @@ python_bin="$(command -v python3)"
 notifier_bin="$(command -v terminal-notifier)"
 
 mkdir -p "$install_dir" "$plist_dir" "$(dirname "$listener_log")"
-install -m 0755 "$source_listener" "$installed_listener"
-install -m 0755 "$source_tunnel" "$installed_tunnel"
+
+install_file() {
+    local source="$1"
+    local destination="$2"
+    local temporary
+
+    temporary="$(mktemp "$install_dir/.${destination##*/}.XXXXXX")"
+    if ! install -m 0755 "$source" "$temporary"; then
+        rm -f "$temporary"
+        return 1
+    fi
+    if ! mv -f "$temporary" "$destination"; then
+        rm -f "$temporary"
+        return 1
+    fi
+}
+
+install_file "$source_listener" "$installed_listener"
+install_file "$source_tunnel" "$installed_tunnel"
+
+bootout_agent() {
+    "$launchctl_bin" bootout "gui/$UID/$1" 2>/dev/null || true
+}
 
 remove_existing_agents() {
     local plist label argument_0 argument_1
+
+    bootout_agent "$listener_label"
+    bootout_agent "$tunnel_label"
 
     for plist in "$plist_dir"/*.plist; do
         [[ -f "$plist" ]] || continue
@@ -80,8 +109,13 @@ remove_existing_agents() {
                         "$plist" 2>/dev/null || true
                 )
                 if [[ -n "$label" ]]; then
-                    "$launchctl_bin" bootout "gui/$UID/$label" \
-                        2>/dev/null || true
+                    case "$label" in
+                        "$listener_label"|"$tunnel_label")
+                            ;;
+                        *)
+                            bootout_agent "$label"
+                            ;;
+                    esac
                 fi
                 rm -f "$plist"
                 ;;
@@ -163,9 +197,23 @@ write_plist(
 )
 PY
 
-"$launchctl_bin" bootstrap "gui/$UID" "$listener_plist"
-"$launchctl_bin" bootstrap "gui/$UID" "$tunnel_plist"
-"$launchctl_bin" kickstart -k "gui/$UID/$listener_label"
-"$launchctl_bin" kickstart -k "gui/$UID/$tunnel_label"
+run_launchctl_or_rollback() {
+    local status
+
+    if "$launchctl_bin" "$@"; then
+        return 0
+    else
+        status=$?
+    fi
+
+    bootout_agent "$listener_label"
+    bootout_agent "$tunnel_label"
+    return "$status"
+}
+
+run_launchctl_or_rollback bootstrap "gui/$UID" "$listener_plist"
+run_launchctl_or_rollback bootstrap "gui/$UID" "$tunnel_plist"
+run_launchctl_or_rollback kickstart -k "gui/$UID/$listener_label"
+run_launchctl_or_rollback kickstart -k "gui/$UID/$tunnel_label"
 
 echo "Installed agent notifications for $host."

@@ -1,0 +1,103 @@
+#!/bin/bash
+#
+# ssh-r — resilient ssh that auto-reconnects after drops, keeping any
+#          port forwards alive across reconnects.
+#
+# Usage: ssh-r HOST [--port REMOTE:LOCAL]...
+
+PROG="$(basename "$0")"
+
+usage() {
+    cat <<EOF
+Usage: $PROG HOST [--port REMOTE:LOCAL]...
+
+Open an ssh session to HOST that automatically reconnects when the connection
+drops (laptop sleep, network change, etc.). On macOS it waits while the laptop
+lid is closed instead of spinning on failed reconnects.
+
+Arguments:
+  HOST                 Destination host (an entry in ~/.ssh/config, or user@host).
+
+Options:
+  --port REMOTE:LOCAL  Forward LOCAL port on this machine to REMOTE port on HOST
+                       (ssh -L), re-established on every reconnect. Repeatable.
+  -h, --help           Show this help and exit.
+
+Examples:
+  $PROG devdesk
+  $PROG devdesk --port 8080:8080 --port 9229:9229
+EOF
+}
+
+HOST=""
+
+# Each --port becomes an ssh -L forward, re-established on every reconnect.
+# LogLevel=ERROR (added below, only when forwarding) silences the INFO-level
+# "channel N: open failed: connect failed: Connection refused" that ssh logs
+# whenever the forwarded port is hit while nothing listens on the remote side.
+# Deliberately not -q, which would also hide real connection/auth failures.
+SSH_ARGS=()
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --port|--port=*)
+            if [[ "$1" == --port=* ]]; then
+                spec="${1#--port=}"
+            else
+                spec="$2"
+                shift
+            fi
+            if [[ ! "$spec" =~ ^[0-9]+:[0-9]+$ ]]; then
+                echo "$PROG: invalid --port '$spec': expected REMOTE:LOCAL" >&2
+                usage >&2
+                exit 2
+            fi
+            SSH_ARGS+=(-L "${spec#*:}:localhost:${spec%:*}")
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -*)
+            echo "$PROG: unknown option: $1" >&2
+            usage >&2
+            exit 2
+            ;;
+        *)
+            if [ -n "$HOST" ]; then
+                echo "$PROG: unexpected argument: '$1' (HOST already set to '$HOST')" >&2
+                usage >&2
+                exit 2
+            fi
+            HOST="$1"
+            ;;
+    esac
+    shift
+done
+
+if [ -z "$HOST" ]; then
+    echo "$PROG: missing HOST" >&2
+    usage >&2
+    exit 2
+fi
+
+if [ ${#SSH_ARGS[@]} -gt 0 ]; then
+    SSH_ARGS+=(-o LogLevel=ERROR)
+fi
+
+# Roll a random id ONCE per launch: stable across reconnects, unique per instance.
+SSH_CONN_ID="$RANDOM"
+
+while true; do
+    ssh -t "${SSH_ARGS[@]}" "$HOST" "SSH_CONN_ID=$SSH_CONN_ID exec \$SHELL -l"
+
+    echo "Connection lost. Reconnecting in 3s..."
+    lid_msg=false
+    while ioreg -r -k AppleClamshellState 2>/dev/null | grep -q '"AppleClamshellState" = Yes'; do
+        if ! $lid_msg; then
+            echo "Lid closed, waiting..."
+            lid_msg=true
+        fi
+        sleep 0.5
+    done
+    sleep 3
+done

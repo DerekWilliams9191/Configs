@@ -254,6 +254,7 @@ fi
 if [ "$PROFILE" = "local" ]; then
     "$SCRIPT_DIR/agent-notifier/install.sh" "$NOTIFY_HOST"
     print_success "Agent notifications enabled"
+    create_symlink "$SCRIPT_DIR/ssh-r" "$HOME/.local/bin/ssh-r"
 fi
 
 # Make zsh the default shell
