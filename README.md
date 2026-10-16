@@ -91,9 +91,11 @@ The `install-linux.sh` script supports:
 The shell behaves slightly differently on remote hosts. `DOTFILES_PROFILE`
 controls this — defaults to `local`. Setting it to `remote` (the Linux
 installer does this automatically when run over SSH or without a graphical
-display) causes the shell to auto-attach to a tmux session on login. The last
-attached session name is saved to `~/.tmux-last-session`; first login uses
-`main`.
+display) enables per-connection tmux re-attach. Each terminal passes a unique
+`SSH_CONN_ID`; tmux hooks (`tmux-ssh-conn-map.sh`) record the session each
+connection last used in `~/.tmux-conn-map`. On login, the shell attaches to the
+session mapped to its `SSH_CONN_ID`. No `SSH_CONN_ID`, no map entry, or a gone
+session means no auto-attach. Use `tat <session>` to attach manually.
 
 To force remote behavior on a host:
 

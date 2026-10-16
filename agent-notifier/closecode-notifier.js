@@ -42,6 +42,10 @@ export const AgentNotifier = async ({ client }) => {
 
   return {
     event: async ({ event }) => {
+      if (event.type === "permission.asked") {
+        send({ hook_event_name: "PermissionRequest" })
+        return
+      }
       if (event.type === "session.idle") {
         if (await isSubagentSession(event.properties?.sessionID)) return
         send({ hook_event_name: "Stop", background_tasks: [] })
@@ -51,9 +55,6 @@ export const AgentNotifier = async ({ client }) => {
         if (await isSubagentSession(event.properties?.sessionID)) return
         send({ hook_event_name: "StopFailure" })
       }
-    },
-    "permission.ask": async () => {
-      send({ hook_event_name: "PermissionRequest" })
     },
     "tool.execute.before": async (input) => {
       if (input?.tool !== "question") return

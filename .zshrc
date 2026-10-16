@@ -127,6 +127,15 @@ function cl() {
   fi
 }
 
+# Attach to a tmux session by name, with session-name completion
+tat() { tmux attach -t "$1"; }
+_tat() {
+  local sessions
+  sessions=(${(f)"$(tmux list-sessions -F '#{session_name}' 2>/dev/null)"})
+  _describe 'tmux sessions' sessions
+}
+compdef _tat tat
+
 alias gs='git status'
 alias ga='git add'
 alias gc='git commit'
@@ -253,4 +262,9 @@ alias -g CAP='|& cap'
 
 # Source machine-local overrides (not tracked in git)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+
+# if you wish to use IMDS set AWS_EC2_METADATA_DISABLED=false
+
+export AWS_EC2_METADATA_DISABLED=true
 
