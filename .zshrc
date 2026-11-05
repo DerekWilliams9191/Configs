@@ -128,7 +128,7 @@ function cl() {
 }
 
 # Attach to a tmux session by name, with session-name completion
-tat() { tmux attach -t "$1"; }
+tat() { [[ -n "$1" ]] || return 0; tmux attach -t "$1"; }
 _tat() {
   local sessions
   sessions=(${(f)"$(tmux list-sessions -F '#{session_name}' 2>/dev/null)"})

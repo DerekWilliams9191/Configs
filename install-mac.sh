@@ -249,6 +249,66 @@ fi
 if [ "$PROFILE" = "remote" ]; then
     echo 'export DOTFILES_PROFILE=remote' > "$HOME/.zshenv"
     print_success "Wrote DOTFILES_PROFILE=remote to ~/.zshenv"
+
+    # Remote Macs are headless: disable desktop services that waste CPU/RAM
+    print_step "Disabling Spotlight indexing..."
+    sudo mdutil -a -i off > /dev/null 2>&1 || true
+    sudo mdutil -a -E > /dev/null 2>&1 || true
+    print_success "Spotlight indexing disabled"
+
+    print_step "Disabling Time Machine automatic backups..."
+    sudo tmutil disable 2>/dev/null || true
+    print_success "Time Machine disabled"
+
+    HEADLESS_SERVICES=(
+        "com.apple.metadata.mds"                       # Spotlight indexer
+        "com.apple.metadata.mds.index"                 # Spotlight worker
+        "com.apple.photoanalysisd"                     # Photos face/scene analysis
+        "com.apple.mediaanalysisd"                     # Media analysis
+        "com.apple.suggestd"                           # Siri suggestions
+        "com.apple.parsecd"                            # Siri/Spotlight server
+        "com.apple.knowledge-agent"                    # Siri/knowledge graph
+        "com.apple.assistantd"                         # Siri assistant
+        "com.apple.Spotlight"                          # Spotlight UI agent
+        "com.apple.bird"                               # iCloud Drive
+        "com.apple.cloudd"                             # CloudKit
+        "com.apple.cloudpaird"                         # iCloud pairing
+        "com.apple.protectedcloudstorage.protectedcloudkeysyncing"
+        "com.apple.findmymacd"                         # Find My Mac
+        "com.apple.familycircled"                      # Family Sharing
+        "com.apple.gamed"                              # Game Center
+        "com.apple.AddressBook.SourceSync"             # Contacts sync
+        "com.apple.AddressBook.abd"                    # Contacts daemon
+        "com.apple.CalendarAgent"                      # Calendar
+        "com.apple.RemindersAgent"                     # Reminders
+        "com.apple.identityservicesd"                  # iMessage/FaceTime ID
+        "com.apple.imagent"                            # iMessage agent
+        "com.apple.notificationcenterui.agent"         # Notification Center
+        "com.apple.dock"                               # Dock
+        "com.apple.Siri.agent"                         # Siri
+        "com.apple.SubmitDiagInfo"                     # Diagnostic submission
+    )
+
+    print_step "Unloading desktop launchd services..."
+    for svc in "${HEADLESS_SERVICES[@]}"; do
+        for dir in /System/Library/LaunchDaemons /System/Library/LaunchAgents /Library/LaunchDaemons /Library/LaunchAgents; do
+            plist="$dir/$svc.plist"
+            if [ -f "$plist" ] && sudo launchctl unload -w "$plist" 2>/dev/null; then
+                print_success "Unloaded $svc"
+            fi
+        done
+    done
+
+    print_step "Disabling UI animations and crash reporter dialogs..."
+    defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
+    defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
+    defaults write com.apple.dock launchanim -bool false
+    defaults write com.apple.dock expose-animation-duration -float 0
+    defaults write com.apple.dock autohide-time-modifier -float 0
+    defaults write com.apple.Finder DisableAllAnimations -bool true
+    defaults write com.apple.Spotlight orderedItems -array
+    defaults write com.apple.CrashReporter DialogType none
+    print_success "Headless setup complete (reboot for full effect)"
 fi
 
 if [ "$PROFILE" = "local" ]; then

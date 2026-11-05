@@ -40,6 +40,20 @@ opt.backspace = "indent,eol,start" -- allow backspace on indent, end of line or 
 -- clipboard
 opt.clipboard:append("unnamedplus") -- use system clipboard as default register
 
+-- over ssh, copy to the local machine's clipboard via OSC 52; paste from the unnamed register
+-- since OSC 52 reads are unreliable (use the terminal's paste for local clipboard contents)
+if vim.env.SSH_CONNECTION then
+  local osc52 = require("vim.ui.clipboard.osc52")
+  local function paste()
+    return { vim.fn.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") }
+  end
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = { ["+"] = osc52.copy("+"), ["*"] = osc52.copy("*") },
+    paste = { ["+"] = paste, ["*"] = paste },
+  }
+end
+
 -- split windows
 opt.splitright = true -- split vertical window to the right
 opt.splitbelow = true -- split horizontal window to the bottom
