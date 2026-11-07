@@ -257,6 +257,14 @@ if [[ -n "$TMUX" ]]; then
   _osc7_cwd
 fi
 
+# Outside tmux, reset terminal modes a crashed tmux client leaves enabled
+# (mouse tracking, focus events, modifyOtherKeys, hidden cursor) before each prompt.
+if [[ -z "$TMUX" ]]; then
+  _reset_term_modes() { printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?1015l\e[?1004l\e[>4m\e[?25h' }
+  autoload -Uz add-zsh-hook
+  add-zsh-hook precmd _reset_term_modes
+fi
+
 cap() { tee capture.tmp; }
 alias -g CAP='|& cap'
 
