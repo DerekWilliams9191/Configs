@@ -3,13 +3,13 @@
 # ssh-r — resilient ssh that auto-reconnects after drops, keeping any
 #          port forwards alive across reconnects.
 #
-# Usage: ssh-r HOST [--port REMOTE:LOCAL]...
+# Usage: ssh-r [SSH_OPTIONS...] HOST [--port REMOTE:LOCAL]...
 
 PROG="$(basename "$0")"
 
 usage() {
     cat <<EOF
-Usage: $PROG HOST [--port REMOTE:LOCAL]...
+Usage: $PROG [SSH_OPTIONS...] HOST [--port REMOTE:LOCAL]...
 
 Open an ssh session to HOST that automatically reconnects when the connection
 drops (laptop sleep, network change, etc.). On macOS it waits while the laptop
@@ -23,9 +23,13 @@ Options:
                        (ssh -L), re-established on every reconnect. Repeatable.
   -h, --help           Show this help and exit.
 
+Any other option (for example -R, -L, -D, -i, -o, -J, -v, -A) is passed
+unchanged to ssh on every reconnect.
+
 Examples:
   $PROG devdesk
   $PROG devdesk --port 8080:8080 --port 9229:9229
+  $PROG -R 8931:localhost:8931 devdesk
 EOF
 }
 
@@ -37,6 +41,12 @@ HOST=""
 # whenever the forwarded port is hit while nothing listens on the remote side.
 # Deliberately not -q, which would also hide real connection/auth failures.
 SSH_ARGS=()
+FORWARDING=false
+
+# ssh options that take a value (from ssh's getopt string). The value is
+# either attached (-R8931:...) or the next argument (-R 8931:...).
+SSH_OPTS_WITH_ARG="bceilmopBDEFIJLOPQRSwW"
+
 while [ $# -gt 0 ]; do
     case "$1" in
         --port|--port=*)
@@ -52,15 +62,39 @@ while [ $# -gt 0 ]; do
                 exit 2
             fi
             SSH_ARGS+=(-L "${spec#*:}:localhost:${spec%:*}")
+            FORWARDING=true
             ;;
         -h|--help)
             usage
             exit 0
             ;;
-        -*)
+        --*)
             echo "$PROG: unknown option: $1" >&2
             usage >&2
             exit 2
+            ;;
+        -?*)
+            # Unknown single-dash option: pass it to ssh unchanged. Walk the
+            # bundled letters (e.g. -vA, -vR SPEC) to find one that takes a
+            # value, so that value is not mistaken for HOST.
+            SSH_ARGS+=("$1")
+            flags="${1#-}"
+            while [ -n "$flags" ]; do
+                c="${flags:0:1}"
+                flags="${flags:1}"
+                [[ "$c" == [LRD] ]] && FORWARDING=true
+                if [[ "$SSH_OPTS_WITH_ARG" == *"$c"* ]]; then
+                    if [ -z "$flags" ]; then
+                        if [ $# -lt 2 ]; then
+                            echo "$PROG: option -$c needs a value" >&2
+                            exit 2
+                        fi
+                        SSH_ARGS+=("$2")
+                        shift
+                    fi
+                    break
+                fi
+            done
             ;;
         *)
             if [ -n "$HOST" ]; then
@@ -80,7 +114,7 @@ if [ -z "$HOST" ]; then
     exit 2
 fi
 
-if [ ${#SSH_ARGS[@]} -gt 0 ]; then
+if $FORWARDING; then
     SSH_ARGS+=(-o LogLevel=ERROR)
 fi
 
