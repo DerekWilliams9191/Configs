@@ -127,6 +127,19 @@ function cl() {
   fi
 }
 
+# Remote Mac only (install-mac.sh --remote): this Mac's tmux server is started by launchd (com.server.tmux).
+# One started from SSH would own its processes, and macOS blocks those from the LAN once that SSH session ends,
+# so never start one here.
+if [[ "$DOTFILES_PROFILE" == "remote" ]] && [[ "$OSTYPE" == "darwin"* ]] && [[ -f "$HOME/Library/LaunchAgents/com.server.tmux.plist" ]]; then
+  tmux() {
+    if ! launchctl print "gui/$UID/com.server.tmux" 2>/dev/null | grep -q "state = running"; then
+      echo "tmux: the launchd tmux server is not running: launchctl kickstart gui/$UID/com.server.tmux" >&2
+      return 1
+    fi
+    command tmux "$@"
+  }
+fi
+
 # Attach to a tmux session by name, with session-name completion
 tat() { [[ -n "$1" ]] || return 0; tmux attach -t "$1"; }
 _tat() {
